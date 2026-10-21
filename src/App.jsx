@@ -3,9 +3,10 @@ import Preloader from './components/Preloader';
 import CustomCursor from './components/CustomCursor';
 import Navbar from './components/Navbar';
 import FloatingButtons from './components/FloatingButtons';
+import MobileBottomNav from './components/MobileBottomNav';
 import Footer from './components/Footer';
 
-// Sections
+// Public Sections (Fast, Responsive, 2D)
 import HeroSection from './sections/HeroSection';
 import AboutSection from './sections/AboutSection';
 import MenuSection from './sections/MenuSection';
@@ -124,7 +125,7 @@ export default function App() {
 
   // Public Dining Website
   return (
-    <div className="min-h-screen bg-forest-950 text-cream selection:bg-gold selection:text-forest-950 font-sans">
+    <div className="min-h-screen bg-forest-950 text-cream selection:bg-gold selection:text-forest-950 font-sans pb-16 sm:pb-0">
       <Preloader />
       <CustomCursor />
       
@@ -135,7 +136,7 @@ export default function App() {
         settings={settings}
       />
 
-      {/* Main Public Sections in Order */}
+      {/* Main Public Sections */}
       <main>
         <HeroSection
           onOpenReserve={handleOpenReserve}
@@ -154,10 +155,17 @@ export default function App() {
       {/* Footer */}
       <Footer />
 
-      {/* Floating Action Buttons */}
-      <FloatingButtons
-        phone={settings?.phone}
-        whatsapp={settings?.whatsapp}
+      {/* Desktop Floating Action Buttons */}
+      <div className="hidden sm:block">
+        <FloatingButtons
+          phone={settings?.phone}
+          whatsapp={settings?.whatsapp}
+        />
+      </div>
+
+      {/* Mobile 1-Tap Quick Action Bottom Bar */}
+      <MobileBottomNav
+        onOpenReserve={handleOpenReserve}
       />
 
       {/* Slide-in Cart Drawer */}
