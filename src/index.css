@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark light;
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+  }
+
+  h1, h2, h3, h4, .font-serif {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #071711;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #D4A24C;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #F3C77C;
+  }
+}
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(14, 42, 31, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 162, 76, 0.2);
+}
+
+.glass-panel-light {
+  background: rgba(255, 246, 229, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 162, 76, 0.3);
+}
+
+.glass-card {
+  background: rgba(20, 56, 42, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 162, 76, 0.15);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  border-color: rgba(212, 162, 76, 0.45);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px -10px rgba(212, 162, 76, 0.15);
+}
+
+/* Gold text gradient */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #FFFDF9 0%, #F3C77C 40%, #D4A24C 70%, #B88236 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Subtle background grain overlay */
+.bg-grain {
+  background-image: radial-gradient(rgba(212, 162, 76, 0.08) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Custom Gold Cursor (desktop mouse only) */
+@media (pointer: fine) and (min-width: 1024px) {
+  body.custom-cursor-active {
+    cursor: none;
+  }
+  body.custom-cursor-active a,
+  body.custom-cursor-active button,
+  body.custom-cursor-active input,
+  body.custom-cursor-active select,
+  body.custom-cursor-active textarea,
+  body.custom-cursor-active [role="button"] {
+    cursor: none;
+  }
+}
