@@ -512,43 +512,48 @@ export const initialGallery = [
 
 export const initialOrders = [
   {
-    id: 'ord-101',
-    order_number: 'NV-1001',
-    customer_name: 'Rajesh Shah',
+    id: 'ord-table-demo-1',
+    order_number: 'NV-T101',
+    table_number: '3',
+    order_type: 'dine-in',
+    waiter_id: 'staff-waiter-01',
+    waiter_name: 'Rahul (Captain)',
+    customer_name: 'Table 3 Guest',
     phone: '9825123456',
-    address: 'B-402, Royal Palace, Kalawad Road, Rajkot',
-    order_type: 'delivery',
-    payment_method: 'UPI',
-    subtotal: 790,
+    status: 'sent_to_kitchen',
+    subtotal: 510,
     delivery_charge: 0,
-    total: 790,
-    status: 'preparing',
-    notes: 'Please keep green chutney extra spicy.',
-    created_at: new Date(Date.now() - 35 * 60 * 1000).toISOString(),
+    gst: 26,
+    total: 536,
+    notes: 'Desi ghee tadka, medium spicy',
+    payment_method: 'UPI',
+    created_at: new Date(Date.now() - 6 * 60 * 1000).toISOString(),
     items: [
-      { name: 'Nandanvan Special Paneer Tikka Lababdar', price: 320, qty: 1 },
-      { name: 'Dum Handi Veg Biryani with Burani Raita', price: 290, qty: 1 },
-      { name: 'Chilli Garlic Butter Naan', price: 75, qty: 2 }
+      { id: 'it-1', name: 'Ringan No Olo (Desi Baingan Bharta)', price: 220, qty: 1, notes: 'Medium spice', is_prepared: false },
+      { id: 'it-2', name: 'Bajra No Rotlo with Desi Makhan & Gol', price: 90, qty: 2, notes: 'Hot & soft', is_prepared: false },
+      { id: 'it-3', name: 'Kathiyawadi Masala Chaas (Spiced Buttermilk)', price: 50, qty: 2, notes: 'Chilled', is_prepared: true }
     ]
   },
   {
-    id: 'ord-102',
-    order_number: 'NV-1002',
-    customer_name: 'Meera Vora',
-    phone: '9898123456',
-    address: 'Table 4 (Garden Terrace)',
+    id: 'ord-table-demo-2',
+    order_number: 'NV-T102',
+    table_number: '5',
     order_type: 'dine-in',
-    payment_method: 'UPI',
-    subtotal: 630,
+    waiter_id: 'staff-waiter-01',
+    waiter_name: 'Rahul (Captain)',
+    customer_name: 'Table 5 Guest',
+    phone: '9898123456',
+    status: 'ready_to_pick',
+    subtotal: 700,
     delivery_charge: 0,
-    total: 630,
-    status: 'confirmed',
-    notes: 'Jain preparation for all items.',
-    created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+    gst: 35,
+    total: 735,
+    notes: 'Pure Jain preparation',
+    payment_method: 'UPI',
+    created_at: new Date(Date.now() - 14 * 60 * 1000).toISOString(),
     items: [
-      { name: 'Bharela Bhinda Masala (Jain Friendly)', price: 210, qty: 1 },
-      { name: 'Malai Kofta Imperial (Jain)', price: 310, qty: 1 },
-      { name: 'Kathiyawadi Masala Chaas (Spiced Buttermilk)', price: 50, qty: 2 }
+      { id: 'it-4', name: 'Malai Kofta Imperial (Jain)', price: 310, qty: 1, notes: 'Jain Gravy', is_prepared: true },
+      { id: 'it-5', name: 'Nandanvan Signature Paneer Steak Sizzler', price: 390, qty: 1, notes: 'Sizzling hot', is_prepared: true }
     ]
   }
 ];

@@ -1,16 +1,18 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { initialOrders, initialMenuItems, initialSettings } from '../data/mockData';
 
-const STORAGE_KEY = 'nandanvan_orders';
+const STORAGE_KEY = 'nandanvan_orders_v2';
 
 const getLocalOrders = () => {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (!stored) {
+    localStorage.removeItem('nandanvan_orders'); // Clear legacy non-table orders
     localStorage.setItem(STORAGE_KEY, JSON.stringify(initialOrders));
     return initialOrders;
   }
   try {
-    return JSON.parse(stored);
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : initialOrders;
   } catch {
     return initialOrders;
   }

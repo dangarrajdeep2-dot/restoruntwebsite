@@ -330,18 +330,18 @@ ${upiUri}
 
       {/* Floating Alert: Cook Marked Order "Ready to Pick" */}
       {readyForPickOrders.length > 0 && (
-        <div className="bg-emerald-600 text-white px-4 py-2.5 shadow-xl flex items-center justify-between border-b border-emerald-400 animate-pulse">
-          <div className="flex items-center space-x-2 text-xs font-bold">
-            <Bell className="w-4 h-4" />
+        <div className="bg-emerald-600 text-white px-4 py-3 shadow-2xl flex items-center justify-between border-b-2 border-emerald-300 animate-pulse sticky top-[60px] z-30">
+          <div className="flex items-center space-x-2 text-xs sm:text-sm font-extrabold">
+            <Bell className="w-5 h-5 text-amber-300 animate-bounce flex-shrink-0" />
             <span>
-              PICKUP READY: Cook marked Table {readyForPickOrders.map((o) => o.table_number).join(', ')} food ready!
+              🔔 READY TO PICK: Food ban gaya hai! Table {readyForPickOrders.map((o) => `#${o.table_number}`).join(', ')} ka food kitchen counter se lene jana hai!
             </span>
           </div>
           <button
             onClick={() => setActiveTab('active_tables')}
-            className="px-2.5 py-1 rounded-lg bg-white text-emerald-900 text-xs font-extrabold uppercase shadow-sm"
+            className="px-3 py-1.5 rounded-xl bg-white text-emerald-950 text-xs font-black uppercase shadow-md active:scale-95 transition-all whitespace-nowrap ml-2"
           >
-            Serve Now
+            Lene Jayein (Pick Now) →
           </button>
         </div>
       )}
@@ -629,27 +629,32 @@ ${upiUri}
                       <div className="flex items-start justify-between pb-3 border-b border-gold/15">
                         <div>
                           <div className="flex items-center space-x-2">
-                            <span className="font-serif text-xl sm:text-2xl font-black text-gold">
-                              TABLE {order.table_number || '1'}
+                            <span className="font-serif text-2xl font-black text-gold">
+                              TABLE #{order.table_number || '1'}
                             </span>
                             <span
-                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                              className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider ${
                                 isReadyToPick
-                                  ? 'bg-emerald-500 text-white'
+                                  ? 'bg-emerald-500 text-white shadow-md animate-pulse'
                                   : isServed
                                   ? 'bg-blue-500/20 text-blue-300 border border-blue-400/40'
                                   : 'bg-amber-500/20 text-amber-300 border border-amber-400/40'
                               }`}
                             >
                               {isReadyToPick
-                                ? '🔔 Ready to Pick'
+                                ? '🔔 FOOD TAIYAR HAI (READY TO PICK)'
                                 : isServed
-                                ? 'Served (Dining)'
-                                : 'Cooking in Kitchen'}
+                                ? 'Served (Customer Dining)'
+                                : 'Cooker Preparing in Kitchen'}
                             </span>
                           </div>
+                          {isReadyToPick && (
+                            <span className="text-[11px] text-emerald-300 font-bold block mt-1">
+                              👉 Cooker ne food bana diya hai! Counter se lene jana hai aur customer ko serve karna hai!
+                            </span>
+                          )}
                           <span className="text-[10px] text-cream/50 font-mono block mt-0.5">
-                            Order #{order.order_number} • Waiter: {order.waiter_name || 'Captain'}
+                            KOT #{order.order_number} • Waiter: {order.waiter_name || 'Captain'}
                           </span>
                         </div>
 
@@ -676,10 +681,10 @@ ${upiUri}
                         {isReadyToPick && (
                           <button
                             onClick={() => handleMarkServed(order.id)}
-                            className="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg active:scale-95"
+                            className="flex-1 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-xl shadow-emerald-500/30 active:scale-95 transition-all"
                           >
                             <Check className="w-4 h-4 stroke-[3]" />
-                            <span>PICK FROM COOKER & SERVED TO TABLE</span>
+                            <span>CONFIRM: PICK FROM COOKER & SERVE TABLE #{order.table_number}</span>
                           </button>
                         )}
 

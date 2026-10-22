@@ -5,7 +5,6 @@ import {
   CheckCircle2, 
   Bell, 
   Flame, 
-  Sparkles, 
   Volume2, 
   VolumeX, 
   LogOut, 
@@ -30,7 +29,6 @@ export default function CookKdsPortal() {
     if (!soundEnabled) return;
     try {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      // Double ding
       const playTone = (freq, delay) => {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -46,19 +44,23 @@ export default function CookKdsPortal() {
       playTone(784, 0); // G5
       playTone(1046.5, 0.18); // C6
     } catch {
-      // AudioContext policy
+      // AudioContext policy fallback
     }
   };
 
   const loadKdsOrders = async (isPoll = false) => {
     const { data } = await getOrders();
     if (data) {
-      // Filter for dine-in orders that concern the kitchen
-      const kitchenOrders = data.filter(
-        (o) => o.order_type === 'dine-in' || (o.status !== 'cancelled')
-      );
+      // STRICT FILTER: Cooker ONLY sees orders sent by floor waiters for tables!
+      // No takeaway, no delivery, no general menu items.
+      const kitchenOrders = data.filter((o) => {
+        const hasTable = Boolean(o.table_number && String(o.table_number).trim() !== '');
+        const isTableOrder = o.order_type === 'dine-in' || hasTable;
+        const isKitchenStatus = ['sent_to_kitchen', 'ready_to_pick'].includes(o.status);
+        return isTableOrder && hasTable && isKitchenStatus;
+      });
 
-      // Check if new orders arrived to play sound
+      // Sound chime when new table orders arrive
       const activeCount = kitchenOrders.filter((o) => o.status === 'sent_to_kitchen').length;
       if (isPoll && activeCount > prevOrdersCount.current) {
         playKitchenBell();
@@ -73,7 +75,6 @@ export default function CookKdsPortal() {
   useEffect(() => {
     loadKdsOrders();
 
-    // Listen to local storage and custom dispatch events for real-time reactivity
     const handleUpdate = () => loadKdsOrders(true);
     window.addEventListener('nandanvan_order_update', handleUpdate);
     window.addEventListener('storage', handleUpdate);
@@ -101,7 +102,7 @@ export default function CookKdsPortal() {
     loadKdsOrders(true);
   };
 
-  // FIFO Sorting: Oldest active orders first!
+  // FIFO Sorting: First Table Order to arrive appears first in queue!
   const sortedOrders = [...orders].sort((a, b) => {
     return new Date(a.created_at) - new Date(b.created_at);
   });
@@ -112,7 +113,7 @@ export default function CookKdsPortal() {
     ? activeOrders 
     : filter === 'ready' 
     ? readyOrders 
-    : sortedOrders.filter(o => o.status !== 'completed' && o.status !== 'cancelled');
+    : sortedOrders;
 
   const getTimeElapsed = (isoDate) => {
     const diffMs = Date.now() - new Date(isoDate).getTime();
@@ -124,9 +125,9 @@ export default function CookKdsPortal() {
   const getUrgencyColor = (isoDate) => {
     const diffMs = Date.now() - new Date(isoDate).getTime();
     const mins = Math.floor(diffMs / 60000);
-    if (mins >= 20) return 'border-rose-500 bg-rose-950/40 text-rose-300';
-    if (mins >= 10) return 'border-amber-500 bg-amber-950/40 text-amber-300';
-    return 'border-gold/30 bg-forest-900/60 text-gold';
+    if (mins >= 20) return 'border-rose-500 bg-rose-950/50 text-rose-300';
+    if (mins >= 10) return 'border-amber-500 bg-amber-950/50 text-amber-300';
+    return 'border-gold/40 bg-forest-900/80 text-gold';
   };
 
   return (
@@ -140,14 +141,14 @@ export default function CookKdsPortal() {
           <div>
             <div className="flex items-center space-x-2">
               <h1 className="font-serif text-lg sm:text-xl font-bold tracking-wider text-gold">
-                NANDANVAN KITCHEN (KDS)
+                NANDANVAN KITCHEN (COOK DISPLAY)
               </h1>
               <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[10px] font-bold uppercase animate-pulse">
-                LIVE FIFO
+                LIVE FIFO QUEUE
               </span>
             </div>
             <p className="text-[11px] text-cream/60">
-              Chef: <strong className="text-cream">{profile?.full_name || 'Kitchen Master'}</strong> • Orders sorted by arrival
+              Chef: <strong className="text-cream">{profile?.full_name || 'Kitchen Master'}</strong> • Live Waiter KOT Feed
             </p>
           </div>
         </div>
@@ -162,7 +163,7 @@ export default function CookKdsPortal() {
                 ? 'bg-gold/20 border-gold/40 text-gold'
                 : 'bg-forest-900 border-cream/20 text-cream/40'
             }`}
-            title="Toggle Kitchen Chime Alert"
+            title="Toggle Kitchen Bell Chime"
           >
             {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             <span className="hidden sm:inline">{soundEnabled ? 'Bell ON' : 'Muted'}</span>
@@ -172,7 +173,7 @@ export default function CookKdsPortal() {
           <button
             onClick={() => loadKdsOrders(true)}
             className="p-2 rounded-xl bg-forest-900 border border-gold/30 text-gold hover:bg-gold/20"
-            title="Refresh Orders"
+            title="Refresh Table Orders"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -223,12 +224,12 @@ export default function CookKdsPortal() {
                 : 'bg-forest-900/60 text-cream/70 hover:text-gold'
             }`}
           >
-            <span>All Active</span>
+            <span>All Active Tables ({sortedOrders.length})</span>
           </button>
         </div>
 
         <div className="text-[11px] text-cream/50 hidden md:block">
-          Orders appear automatically the second Waiter sends KOT on phone.
+          Orders appear the exact second a floor Waiter adds items on phone.
         </div>
       </div>
 
@@ -245,18 +246,17 @@ export default function CookKdsPortal() {
               <ChefHat className="w-8 h-8" />
             </div>
             <h3 className="font-serif text-xl font-bold text-cream mb-1">
-              Kitchen Queue is All Clear!
+              Kitchen Counter is All Clear!
             </h3>
-            <p className="text-xs text-cream/60">
-              No orders waiting in this view. When a floor waiter adds an order, it will chime and appear right here instantly.
+            <p className="text-xs text-cream/60 leading-relaxed">
+              No pending table orders. Jab bhi koi waiter table ka order select karega, wo table label aur ordered food items ke saath yahan turant appear hoga!
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {displayedOrders.map((order, orderIndex) => {
               const isReady = order.status === 'ready_to_pick';
-              const isServed = order.status === 'served';
-              const allChecked = order.items && order.items.every((it) => it.is_prepared);
+              const allChecked = order.items && order.items.length > 0 && order.items.every((it) => it.is_prepared);
               const urgency = getUrgencyColor(order.created_at);
 
               return (
@@ -264,26 +264,24 @@ export default function CookKdsPortal() {
                   key={order.id}
                   className={`rounded-2xl border-2 flex flex-col justify-between shadow-2xl transition-all duration-300 overflow-hidden ${
                     isReady
-                      ? 'bg-emerald-950/40 border-emerald-500/80 shadow-[0_0_25px_rgba(16,185,129,0.25)]'
-                      : isServed
-                      ? 'bg-forest-950/80 border-gold/20 opacity-75'
+                      ? 'bg-emerald-950/50 border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.3)]'
                       : 'bg-forest-900/90 border-gold/40'
                   }`}
                 >
-                  {/* Card Header (Table & Order Info) */}
+                  {/* Card Header: Table Label & Waiter Name */}
                   <div className="p-4 border-b border-gold/20 bg-forest-950/70">
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center space-x-2">
-                          <span className="font-serif text-2xl sm:text-3xl font-extrabold text-gold tracking-tight">
-                            {order.table_number ? `TABLE ${order.table_number}` : 'TAKEAWAY'}
+                          <span className="font-serif text-3xl font-black text-gold tracking-tight">
+                            TABLE #{order.table_number}
                           </span>
                           <span className="px-2 py-0.5 rounded-md bg-forest-900 border border-gold/30 text-[10px] font-mono text-cream font-bold">
                             #{orderIndex + 1} FIFO
                           </span>
                         </div>
-                        <span className="text-[10px] text-cream/60 font-mono block mt-0.5">
-                          Order: {order.order_number} • Waiter: <strong className="text-cream">{order.waiter_name || 'Captain'}</strong>
+                        <span className="text-[11px] text-cream/70 block mt-1">
+                          Waiter: <strong className="text-gold">{order.waiter_name || 'Captain'}</strong> • KOT: <span className="font-mono">{order.order_number}</span>
                         </span>
                       </div>
 
@@ -294,19 +292,19 @@ export default function CookKdsPortal() {
                       </div>
                     </div>
 
-                    {/* Customer Notes / Allergies */}
+                    {/* Customer Notes / Special Instructions */}
                     {order.notes && (
-                      <div className="mt-2 p-2 rounded-xl bg-amber-950/60 border border-amber-500/40 text-amber-200 text-xs flex items-center space-x-1.5 font-medium">
+                      <div className="mt-2.5 p-2 rounded-xl bg-amber-950/60 border border-amber-500/40 text-amber-200 text-xs flex items-center space-x-1.5 font-medium">
                         <AlertTriangle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                        <span>Note: {order.notes}</span>
+                        <span>Instructions: <strong>{order.notes}</strong></span>
                       </div>
                     )}
                   </div>
 
-                  {/* Menu Items Checklist (Cook ticks items as prepared) */}
-                  <div className="p-4 space-y-2.5 flex-1 overflow-y-auto max-h-[360px]">
-                    <div className="text-[10px] font-bold text-cream/40 uppercase tracking-wider mb-1 flex items-center justify-between">
-                      <span>Menu Items to Prepare ({order.items?.length || 0})</span>
+                  {/* Food Items Checklist (Cook ticks items as prepared) */}
+                  <div className="p-4 space-y-2 flex-1 overflow-y-auto max-h-[360px]">
+                    <div className="text-[10px] font-bold text-cream/50 uppercase tracking-wider mb-2 flex items-center justify-between">
+                      <span>Ordered Food ({order.items?.length || 0} Items)</span>
                       <span>Tick When Cooked</span>
                     </div>
 
@@ -319,14 +317,14 @@ export default function CookKdsPortal() {
                           onClick={() => handleToggleItem(order.id, idx)}
                           className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                             isPrepared
-                              ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-200'
+                              ? 'bg-emerald-950/70 border-emerald-500/60 text-emerald-200'
                               : 'bg-forest-950/80 border-gold/20 hover:border-gold/60 text-cream'
                           }`}
                         >
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-3 min-w-0 pr-2">
                             {/* Tick checkbox */}
                             <div
-                              className={`w-6 h-6 rounded-lg flex items-center justify-center border transition-all ${
+                              className={`w-6 h-6 rounded-lg flex items-center justify-center border transition-all flex-shrink-0 ${
                                 isPrepared
                                   ? 'bg-emerald-500 border-emerald-400 text-white'
                                   : 'border-gold/40 bg-forest-900/60 text-transparent'
@@ -335,12 +333,10 @@ export default function CookKdsPortal() {
                               <Check className="w-4 h-4 stroke-[3]" />
                             </div>
 
-                            <div>
-                              <div className="flex items-center space-x-2">
-                                <span className={`text-sm font-bold ${isPrepared ? 'line-through text-cream/50' : 'text-cream'}`}>
-                                  {item.name}
-                                </span>
-                              </div>
+                            <div className="min-w-0">
+                              <span className={`text-sm font-bold block truncate ${isPrepared ? 'line-through text-cream/40' : 'text-cream'}`}>
+                                {item.name}
+                              </span>
                               {item.notes && (
                                 <span className="text-[10px] text-amber-300 block">
                                   {item.notes}
@@ -359,27 +355,28 @@ export default function CookKdsPortal() {
                   </div>
 
                   {/* Card Footer: Ready to Pick Button */}
-                  <div className="p-4 border-t border-gold/20 bg-forest-950/80">
+                  <div className="p-4 border-t border-gold/20 bg-forest-950/90">
                     {isReady ? (
-                      <div className="w-full py-3.5 rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-400 font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2">
-                        <CheckCircle2 className="w-4 h-4 animate-bounce" />
-                        <span>Notified Waiter • Ready for Table Pick</span>
-                      </div>
-                    ) : isServed ? (
-                      <div className="w-full py-2.5 rounded-xl bg-forest-900 border border-gold/30 text-cream/70 font-semibold text-xs text-center">
-                        ✓ Served to Customer
+                      <div className="w-full py-3 rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-bold text-xs uppercase tracking-wider flex flex-col items-center justify-center space-y-0.5 text-center">
+                        <div className="flex items-center space-x-1.5 text-emerald-400">
+                          <CheckCircle2 className="w-4 h-4 animate-bounce" />
+                          <span>NOTIFIED WAITER • READY FOR PICKUP</span>
+                        </div>
+                        <span className="text-[10px] text-cream/60 normal-case">
+                          Table #{order.table_number} ka food ban gaya hai. Waiter lene aa raha hai.
+                        </span>
                       </div>
                     ) : (
                       <button
                         onClick={() => handleReadyToPick(order.id)}
-                        className={`w-full py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-xl transition-all active:scale-95 ${
+                        className={`w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-xl transition-all active:scale-95 ${
                           allChecked
                             ? 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-emerald-500/30 animate-pulse'
                             : 'bg-gold-gradient text-forest-950 hover:shadow-gold/30'
                         }`}
                       >
                         <Bell className="w-4 h-4" />
-                        <span>READY TO PICK (ALERT WAITER)</span>
+                        <span>READY TO PICK (NOTIFY WAITER) 🚀</span>
                       </button>
                     )}
                   </div>
