@@ -16,10 +16,18 @@ import {
   Check,
   QrCode,
   Send,
-  Sparkles
+  Sparkles,
+  Download,
+  Share2,
+  FileCheck
 } from 'lucide-react';
 import { getOrders, updateOrderStatus } from '../../api/orders';
 import { getSettings } from '../../api/settings';
+import { 
+  downloadOrderBillPdf, 
+  sendBillPdfToWhatsApp, 
+  buildWhatsAppThankYouMessage 
+} from '../../utils/generateBillPdf';
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
@@ -32,6 +40,8 @@ export default function AdminOrders() {
   // WhatsApp Billing State inside Admin Modal
   const [whatsappPhone, setWhatsappPhone] = useState('');
   const [billSentSuccess, setBillSentSuccess] = useState(false);
+  const [pdfNotice, setPdfNotice] = useState(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -53,6 +63,8 @@ export default function AdminOrders() {
     if (selectedOrder) {
       setWhatsappPhone(selectedOrder.phone || '');
       setBillSentSuccess(false);
+      setPdfNotice(null);
+      setIsGeneratingPdf(false);
       setCopied(false);
     }
   }, [selectedOrder]);
@@ -114,61 +126,45 @@ export default function AdminOrders() {
     return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiUri)}`;
   };
 
-  const generateBillMessage = (order) => {
-    if (!order) return '';
-    const { subtotal, gst, delivery, total } = calculateOrderTotals(order);
-    const upiUri = getDynamicUpiUri(order);
-    const items = order.items || order.order_items || [];
-    
-    const itemsText = items.map((it, idx) => {
-      const roundTag = it.round && it.round > 1 ? ` [R${it.round}]` : '';
-      return `${idx + 1}. ${it.name}${roundTag} x${it.qty} = ₹${it.price * it.qty}`;
-    }).join('\n');
-
-    const dateStr = new Date(order.created_at || Date.now()).toLocaleDateString('en-IN');
-    const timeStr = new Date(order.created_at || Date.now()).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-
-    return `🍽️ *${restaurantName.toUpperCase()}*
-📍 ${restaurantAddress}
-📞 ${restaurantPhone}
-──────────────────────
-🧾 *TAX INVOICE / BILL*
-📋 Order #: ${order.order_number}
-📅 Date: ${dateStr} | ⏰ ${timeStr}
-👤 Customer: ${order.customer_name || 'Guest'}
-📍 Type: ${order.order_type === 'dine-in' ? `Table #${order.table_number || '1'} (Dine-In)` : (order.order_type || 'Order').toUpperCase()}
-${order.waiter_name ? `👨‍🍳 Captain: ${order.waiter_name}\n` : ''}──────────────────────
-*ITEMS ORDERED:*
-${itemsText}
-──────────────────────
-Subtotal: ₹${subtotal}
-GST (${gstRate}%): ₹${gst}
-${delivery > 0 ? `Delivery Charges: ₹${delivery}\n` : ''}*GRAND TOTAL: ₹${total}*
-──────────────────────
-💳 *Pay via UPI (GPay/PhonePe/Paytm):*
-${upiUri}
-(UPI ID: ${upiId})
-
-🙏 *Thank you for dining with us at ${restaurantName}! We hope you had a delightful experience and look forward to serving you again soon.* ✨`;
-  };
-
-  const handleSendWhatsApp = () => {
+  const handleSendWhatsAppPdf = async () => {
     if (!selectedOrder) return;
     const cleanPhone = whatsappPhone.replace(/[^0-9]/g, '').slice(-10);
     if (cleanPhone.length < 10) {
-      alert('Please enter a valid 10-digit mobile number for WhatsApp');
+      alert('Please enter a valid 10-digit customer WhatsApp number');
       return;
     }
-    const message = generateBillMessage(selectedOrder);
-    const waUrl = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(message)}`;
-    window.open(waUrl, '_blank');
-    setBillSentSuccess(true);
+    setIsGeneratingPdf(true);
+    setPdfNotice(null);
+    try {
+      const res = await sendBillPdfToWhatsApp(selectedOrder, settings, cleanPhone);
+      if (res.success) {
+        setBillSentSuccess(true);
+        setPdfNotice(res.message);
+      }
+    } catch (err) {
+      alert(err.message || 'Error creating Bill PDF');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
-  const handleCopyBill = () => {
+  const handleDownloadPdf = async () => {
     if (!selectedOrder) return;
-    const message = generateBillMessage(selectedOrder);
-    navigator.clipboard.writeText(message);
+    setIsGeneratingPdf(true);
+    try {
+      const fileName = await downloadOrderBillPdf(selectedOrder, settings);
+      setPdfNotice(`Bill PDF "${fileName}" downloaded successfully!`);
+    } catch (err) {
+      alert(err.message || 'Error downloading Bill PDF');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  const handleCopyThankYou = () => {
+    if (!selectedOrder) return;
+    const msg = buildWhatsAppThankYouMessage(selectedOrder, settings);
+    navigator.clipboard.writeText(msg);
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
   };
@@ -436,15 +432,21 @@ ${upiUri}
                 </div>
               </div>
 
-              {/* Automated WhatsApp Bill Sending Box (Hidden on Print) */}
-              <div className="no-print p-4 rounded-2xl bg-forest-950 border-2 border-emerald-500/40 shadow-xl space-y-3 mb-4">
+              {/* Automated WhatsApp Bill PDF Sending Box (Hidden on Print) */}
+              <div className="no-print p-4 rounded-2xl bg-forest-950 border-2 border-emerald-500/50 shadow-2xl space-y-3 mb-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black text-emerald-400 uppercase tracking-wider flex items-center space-x-1.5">
-                    <MessageCircle className="w-4 h-4 fill-emerald-500 text-forest-950" />
-                    <span>Send Automated WhatsApp Bill</span>
+                    <FileCheck className="w-4 h-4 text-emerald-400" />
+                    <span>Send Bill PDF & Thank You on WhatsApp</span>
                   </span>
-                  <span className="text-[10px] text-cream/60">Direct to Customer</span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
+                    Official PDF Invoice
+                  </span>
                 </div>
+
+                <p className="text-[11px] text-cream/70 leading-relaxed">
+                  Customer ko bill ka <strong>official PDF</strong> send hoga aur sath mein niche alag se personalized <strong>Thank You message & UPI link</strong> jayega!
+                </p>
 
                 <div className="flex items-center space-x-2">
                   <span className="px-2.5 py-2 rounded-xl bg-forest-900 border border-gold/30 text-gold font-bold text-xs">
@@ -459,31 +461,46 @@ ${upiUri}
                   />
                 </div>
 
-                {billSentSuccess && (
-                  <div className="p-2.5 rounded-xl bg-emerald-950 border border-emerald-500/60 text-emerald-300 text-[11px] flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                    <span>WhatsApp bill with UPI link generated and opened successfully!</span>
+                {pdfNotice && (
+                  <div className="p-3 rounded-xl bg-emerald-950 border border-emerald-500/70 text-emerald-300 text-[11px] flex items-start space-x-2 shadow-inner">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                    <span className="leading-relaxed">{pdfNotice}</span>
                   </div>
                 )}
 
-                <div className="flex gap-2">
+                {/* Primary Button: Send PDF on WhatsApp */}
+                <button
+                  type="button"
+                  disabled={isGeneratingPdf}
+                  onClick={handleSendWhatsAppPdf}
+                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-xl shadow-emerald-600/30 active:scale-95 transition-all disabled:opacity-50"
+                >
+                  <MessageCircle className="w-4 h-4 fill-white text-emerald-600" />
+                  <span>
+                    {isGeneratingPdf ? 'Generating & Sending PDF...' : 'Send Bill PDF on WhatsApp 📄💬'}
+                  </span>
+                </button>
+
+                {/* Secondary Actions: Download PDF & Copy Thank You Note */}
+                <div className="flex gap-2 pt-1">
                   <button
                     type="button"
-                    onClick={handleSendWhatsApp}
-                    className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/30 active:scale-95 transition-all"
+                    disabled={isGeneratingPdf}
+                    onClick={handleDownloadPdf}
+                    className="flex-1 py-2.5 rounded-xl bg-forest-900 border border-gold/30 text-gold hover:bg-gold/15 text-xs font-bold flex items-center justify-center space-x-1.5 transition-all"
                   >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>Send WhatsApp Bill 💬</span>
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download PDF</span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={handleCopyBill}
-                    className="px-3.5 py-2.5 rounded-xl bg-forest-900 border border-gold/30 text-gold hover:bg-gold/15 text-xs font-semibold flex items-center space-x-1 transition-all"
-                    title="Copy full itemized bill text to clipboard"
+                    onClick={handleCopyThankYou}
+                    className="flex-1 py-2.5 rounded-xl bg-forest-900 border border-gold/30 text-gold hover:bg-gold/15 text-xs font-bold flex items-center justify-center space-x-1.5 transition-all"
+                    title="Copy Thank You text message"
                   >
                     {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copied ? 'Copied!' : 'Copy'}</span>
+                    <span>{copied ? 'Copied Note!' : 'Copy Thank Note'}</span>
                   </button>
                 </div>
               </div>
@@ -495,7 +512,7 @@ ${upiUri}
                   className="flex-1 py-3 rounded-xl bg-gold-gradient text-forest-950 font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg hover:shadow-gold/30 active:scale-95 transition-all"
                 >
                   <Printer className="w-4 h-4" />
-                  <span>Print Bill / Save PDF 📄</span>
+                  <span>Print Receipt / KOT 🖨️</span>
                 </button>
 
                 <button
