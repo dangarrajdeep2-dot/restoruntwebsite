@@ -97,7 +97,26 @@ export default function App() {
       );
     }
     if (!user) {
-      return <PortalLogin onLoginSuccess={() => { window.location.hash = '#/portal/cook'; }} />;
+      return <PortalLogin />;
+    }
+    // Route according to authenticated role if switching
+    if (isWaiter) return <WaiterPortal />;
+    if (isAdmin) {
+      return (
+        <AdminLayout activeTab={adminTab} onSelectTab={setAdminTab}>
+          {adminTab === 'dashboard' && <AdminDashboard onNavigate={setAdminTab} />}
+          {adminTab === 'orders' && <AdminOrders />}
+          {adminTab === 'reservations' && <AdminReservations />}
+          {adminTab === 'menu' && <AdminMenu />}
+          {adminTab === 'categories' && <AdminCategories />}
+          {adminTab === 'offers' && <AdminOffers />}
+          {adminTab === 'gallery' && <AdminGallery />}
+          {adminTab === 'reviews' && <AdminReviews />}
+          {adminTab === 'enquiries' && <AdminEnquiries />}
+          {adminTab === 'staff' && <AdminStaff />}
+          {adminTab === 'settings' && <AdminSettings />}
+        </AdminLayout>
+      );
     }
     return <CookKdsPortal />;
   }
@@ -112,7 +131,26 @@ export default function App() {
       );
     }
     if (!user) {
-      return <PortalLogin onLoginSuccess={() => { window.location.hash = '#/portal/waiter'; }} />;
+      return <PortalLogin />;
+    }
+    // Route according to authenticated role if switching
+    if (isCook) return <CookKdsPortal />;
+    if (isAdmin) {
+      return (
+        <AdminLayout activeTab={adminTab} onSelectTab={setAdminTab}>
+          {adminTab === 'dashboard' && <AdminDashboard onNavigate={setAdminTab} />}
+          {adminTab === 'orders' && <AdminOrders />}
+          {adminTab === 'reservations' && <AdminReservations />}
+          {adminTab === 'menu' && <AdminMenu />}
+          {adminTab === 'categories' && <AdminCategories />}
+          {adminTab === 'offers' && <AdminOffers />}
+          {adminTab === 'gallery' && <AdminGallery />}
+          {adminTab === 'reviews' && <AdminReviews />}
+          {adminTab === 'enquiries' && <AdminEnquiries />}
+          {adminTab === 'staff' && <AdminStaff />}
+          {adminTab === 'settings' && <AdminSettings />}
+        </AdminLayout>
+      );
     }
     return <WaiterPortal />;
   }

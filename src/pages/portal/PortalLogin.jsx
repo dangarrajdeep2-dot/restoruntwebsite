@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
 import { 
-  ShieldCheck, 
-  ChefHat, 
-  Utensils, 
   Key, 
   Mail, 
   Eye, 
   EyeOff, 
   AlertCircle, 
-  Sparkles,
-  ArrowRight
+  ArrowRight,
+  ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -30,41 +27,29 @@ export default function PortalLogin({ onLoginSuccess }) {
     setLoading(false);
 
     if (error) {
-      setErrorMessage(error.message || 'Invalid credentials. Please check your username and password.');
+      setErrorMessage(error.message || 'Invalid username or password. Please verify credentials.');
       return;
     }
 
     if (data?.user) {
       const role = data.user.role;
+      // Strictly route to the exact portal based on the authenticated role
+      if (role === 'cook') {
+        window.location.hash = '#/portal/cook';
+      } else if (role === 'waiter') {
+        window.location.hash = '#/portal/waiter';
+      } else {
+        window.location.hash = '#/admin';
+      }
+
       if (onLoginSuccess) {
         onLoginSuccess(role);
-      } else {
-        if (role === 'cook') {
-          window.location.hash = '#/portal/cook';
-        } else if (role === 'waiter') {
-          window.location.hash = '#/portal/waiter';
-        } else {
-          window.location.hash = '#/admin';
-        }
       }
     }
   };
 
-  const handleQuickFill = (role) => {
-    if (role === 'admin') {
-      setUsername('admin@nandanvan.com');
-      setPassword('admin123');
-    } else if (role === 'waiter') {
-      setUsername('waiter@nandanvan.com');
-      setPassword('waiter123');
-    } else if (role === 'cook') {
-      setUsername('cook@nandanvan.com');
-      setPassword('cook123');
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-forest-950 flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-forest-950 flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden select-none">
       {/* Background radial ambiance */}
       <div className="absolute inset-0 bg-grain pointer-events-none opacity-40" />
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 sm:w-[500px] h-80 sm:h-[500px] bg-gradient-to-tr from-gold/15 to-saffron/10 rounded-full blur-[120px] pointer-events-none" />
@@ -79,44 +64,11 @@ export default function PortalLogin({ onLoginSuccess }) {
             NANDANVAN RESTAURANT
           </h1>
           <p className="text-xs text-cream/70 uppercase tracking-[0.2em] font-sans mt-1">
-            Staff & Operations Portal
+            Staff & Operations Portal Login
           </p>
         </div>
 
-        {/* Quick Role Helper Chips */}
-        <div className="mb-4 p-2.5 rounded-2xl bg-forest-900/60 border border-gold/25 text-xs text-center backdrop-blur-md">
-          <span className="text-[10px] text-cream/50 uppercase tracking-wider block mb-2 font-semibold">
-            One-Tap Quick Login Fill:
-          </span>
-          <div className="grid grid-cols-3 gap-1.5">
-            <button
-              type="button"
-              onClick={() => handleQuickFill('admin')}
-              className="py-1.5 px-2 rounded-xl bg-forest-950 border border-emerald-500/30 text-emerald-300 hover:border-emerald-400 text-[11px] font-bold flex items-center justify-center space-x-1"
-            >
-              <ShieldCheck className="w-3 h-3 text-emerald-400" />
-              <span>Admin</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill('waiter')}
-              className="py-1.5 px-2 rounded-xl bg-forest-950 border border-gold/30 text-gold hover:border-gold text-[11px] font-bold flex items-center justify-center space-x-1"
-            >
-              <Utensils className="w-3 h-3 text-gold" />
-              <span>Waiter</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill('cook')}
-              className="py-1.5 px-2 rounded-xl bg-forest-950 border border-saffron/30 text-saffron hover:border-saffron text-[11px] font-bold flex items-center justify-center space-x-1"
-            >
-              <ChefHat className="w-3 h-3 text-saffron" />
-              <span>Cooker</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Login Form Box */}
+        {/* Clean Login Form Box (Private & Secure, no role options exposed) */}
         <div className="rounded-3xl bg-forest-900/90 border border-gold/30 p-6 sm:p-8 shadow-2xl backdrop-blur-lg">
           <form onSubmit={handleSubmit} className="space-y-4">
             {errorMessage && (
@@ -128,14 +80,14 @@ export default function PortalLogin({ onLoginSuccess }) {
 
             <div>
               <label className="block text-xs font-semibold text-cream/80 mb-1.5">
-                Staff Email / Username
+                Staff Email or Username
               </label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gold/70" />
                 <input
                   type="text"
                   required
-                  placeholder="admin@nandanvan.com or waiter@nandanvan.com"
+                  placeholder="Enter staff email or username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-forest-950 border border-gold/25 text-cream text-xs sm:text-sm focus:outline-none focus:border-gold font-mono"
@@ -145,14 +97,14 @@ export default function PortalLogin({ onLoginSuccess }) {
 
             <div>
               <label className="block text-xs font-semibold text-cream/80 mb-1.5">
-                Staff Password
+                Password
               </label>
               <div className="relative">
                 <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gold/70" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder="Enter password"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-forest-950 border border-gold/25 text-cream text-xs sm:text-sm focus:outline-none focus:border-gold font-mono"
@@ -161,6 +113,7 @@ export default function PortalLogin({ onLoginSuccess }) {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-cream/50 hover:text-gold"
+                  aria-label="Toggle password visibility"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -170,12 +123,13 @@ export default function PortalLogin({ onLoginSuccess }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-xl bg-gold-gradient text-forest-950 font-bold text-xs uppercase tracking-wider shadow-lg hover:shadow-gold/30 transition-all flex items-center justify-center space-x-2 active:scale-95 disabled:opacity-50"
+              className="w-full py-3.5 rounded-xl bg-gold-gradient text-forest-950 font-bold text-xs uppercase tracking-wider shadow-lg hover:shadow-gold/30 transition-all flex items-center justify-center space-x-2 active:scale-95 disabled:opacity-50 mt-2"
             >
               {loading ? (
                 <div className="w-4 h-4 rounded-full border-2 border-forest-950 border-t-transparent animate-spin" />
               ) : (
                 <>
+                  <ShieldCheck className="w-4 h-4" />
                   <span>Sign In to Portal</span>
                   <ArrowRight className="w-4 h-4" />
                 </>

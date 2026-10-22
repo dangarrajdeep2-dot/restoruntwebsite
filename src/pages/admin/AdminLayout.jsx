@@ -198,30 +198,19 @@ export default function AdminLayout({ activeTab, onSelectTab, children }) {
         </div>
 
         {/* Quick Portal Switchers */}
-        <div className="py-2.5 px-3 border-t border-gold/15 bg-forest-950/60 space-y-1.5 rounded-xl mx-2 mb-2">
-          <span className="text-[9px] uppercase tracking-widest text-cream/50 block font-semibold">
-            Floor & Kitchen Portals
-          </span>
-          <div className="grid grid-cols-2 gap-1.5">
-            <a
-              href="#/portal/waiter"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-2 py-1.5 rounded-lg bg-gold/10 hover:bg-gold/20 border border-gold/30 text-gold text-[10px] font-semibold flex items-center justify-center space-x-1"
-            >
-              <Utensils className="w-3 h-3" />
-              <span>Waiter App</span>
-            </a>
-            <a
-              href="#/portal/cook"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-2 py-1.5 rounded-lg bg-saffron/10 hover:bg-saffron/20 border border-saffron/30 text-saffron text-[10px] font-semibold flex items-center justify-center space-x-1"
-            >
-              <ChefHat className="w-3 h-3" />
-              <span>Cook KDS</span>
-            </a>
-          </div>
+        {/* Portal Button: Navigates to Portal Login */}
+        <div className="py-2.5 px-3 border-t border-gold/15 bg-forest-950/60 rounded-xl mx-2 mb-2">
+          <button
+            onClick={async () => {
+              await signOut();
+              window.location.hash = '#/portal';
+            }}
+            className="w-full py-2 px-3 rounded-lg bg-forest-900 hover:bg-gold/20 border border-gold/30 text-gold text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all shadow-sm active:scale-95"
+            title="Go to Portal Login"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Portal</span>
+          </button>
         </div>
 
         {/* User Info & Logout */}
@@ -284,6 +273,18 @@ export default function AdminLayout({ activeTab, onSelectTab, children }) {
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>Realtime Connected</span>
             </span>
+
+            <button
+              onClick={async () => {
+                await signOut();
+                window.location.hash = '#/portal';
+              }}
+              className="px-3 py-1.5 rounded-xl bg-forest-900 border border-gold/30 text-gold hover:bg-gold hover:text-forest-950 transition-colors text-xs font-semibold flex items-center space-x-1.5"
+              title="Go to Portal Login"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Portal</span>
+            </button>
 
             <a
               href="#/"

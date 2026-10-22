@@ -133,6 +133,7 @@ export function AuthProvider({ children }) {
         console.warn('Sign out error:', err);
       }
     }
+    window.location.hash = '#/portal';
     return { error: null };
   };
 
