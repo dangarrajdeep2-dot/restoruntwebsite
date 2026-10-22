@@ -141,9 +141,10 @@ export default function App() {
         <HeroSection
           onOpenReserve={handleOpenReserve}
           onExploreMenu={handleExploreMenu}
+          settings={settings}
         />
         <AboutSection />
-        <MenuSection />
+        <MenuSection settings={settings} />
         <ReservationSection />
         <OffersSection />
         <GallerySection />
@@ -166,6 +167,7 @@ export default function App() {
       {/* Mobile 1-Tap Quick Action Bottom Bar */}
       <MobileBottomNav
         onOpenReserve={handleOpenReserve}
+        settings={settings}
       />
 
       {/* Slide-in Cart Drawer */}

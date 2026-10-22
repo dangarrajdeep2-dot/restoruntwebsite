@@ -6,19 +6,19 @@ import {
   ShoppingBag, 
   Flame, 
   Check, 
-  Clock,
-  Layers,
-  X,
-  Info
+  Clock, 
+  Layers, 
+  X, 
+  Info,
+  Utensils,
+  ExternalLink
 } from 'lucide-react';
 import { getCategories } from '../api/categories';
 import { getMenuItems } from '../api/menu';
-import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 
-export default function MenuSection() {
+export default function MenuSection({ settings }) {
   const { t } = useLanguage();
-  const { addToCart, items: cartItems, setIsDrawerOpen } = useCart();
 
   const [categories, setCategories] = useState([]);
   const [dishes, setDishes] = useState([]);
@@ -28,7 +28,8 @@ export default function MenuSection() {
   const [selectedType, setSelectedType] = useState('all'); // all | veg | jain
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDishDetail, setSelectedDishDetail] = useState(null);
-  const [addedDishId, setAddedDishId] = useState(null);
+
+  const zomatoUrl = settings?.zomato_url || 'https://www.zomato.com/rajkot/restaurants?q=Nandanvan';
 
   // Fetch data
   useEffect(() => {
@@ -68,17 +69,6 @@ export default function MenuSection() {
     });
   }, [dishes, categories, activeCategory, selectedType, searchQuery]);
 
-  const handleAddToCart = (dish) => {
-    addToCart(dish, 1);
-    setAddedDishId(dish.id);
-    setTimeout(() => setAddedDishId(null), 1000);
-  };
-
-  const getDishCartQty = (dishId) => {
-    const item = cartItems.find((i) => i.id === dishId);
-    return item ? item.qty : 0;
-  };
-
   return (
     <section id="menu" className="relative py-16 sm:py-24 bg-forest-950">
       {/* Decorative background glow */}
@@ -98,6 +88,21 @@ export default function MenuSection() {
           <p className="text-xs sm:text-base text-cream/70 font-light px-2">
             {t.menu.subtitle}
           </p>
+
+          {/* Zomato Delivery Partner Notice */}
+          <div className="mt-3.5 inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-forest-900/80 border border-gold/30 text-cream text-[11px] sm:text-xs backdrop-blur-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Online delivery is fulfilled exclusively via our official partner</span>
+            <a
+              href={zomatoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gold font-bold hover:underline inline-flex items-center space-x-1"
+            >
+              <span>Zomato</span>
+              <ExternalLink className="w-3 h-3 text-gold" />
+            </a>
+          </div>
         </div>
 
         {/* Filter & Search Bar Controls */}
@@ -212,9 +217,6 @@ export default function MenuSection() {
           >
             <AnimatePresence>
               {filteredDishes.map((dish) => {
-                const qtyInCart = getDishCartQty(dish.id);
-                const isJustAdded = addedDishId === dish.id;
-
                 return (
                   <motion.div
                     layout
@@ -280,7 +282,7 @@ export default function MenuSection() {
                         </p>
                       </div>
 
-                      {/* Footer: Price & Add to Cart button */}
+                      {/* Footer: Price & Zomato Order Button */}
                       <div className="pt-3 border-t border-gold/15 flex items-center justify-between">
                         <div className="flex items-baseline space-x-0.5">
                           <span className="text-xs text-gold/80 font-medium">₹</span>
@@ -289,26 +291,16 @@ export default function MenuSection() {
                           </span>
                         </div>
 
-                        <button
-                          onClick={() => handleAddToCart(dish)}
-                          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center space-x-1.5 transition-all ${
-                            isJustAdded
-                              ? 'bg-emerald-600 text-white'
-                              : 'bg-gold-gradient text-forest-950 hover:shadow-md'
-                          }`}
+                        <a
+                          href={zomatoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center space-x-1 bg-gold-gradient text-forest-950 hover:shadow-md transition-all active:scale-95 group/btn"
                         >
-                          {isJustAdded ? (
-                            <>
-                              <Check className="w-3.5 h-3.5" />
-                              <span>Added</span>
-                            </>
-                          ) : (
-                            <>
-                              <ShoppingBag className="w-3.5 h-3.5" />
-                              <span>Add {qtyInCart > 0 ? `(${qtyInCart})` : ''}</span>
-                            </>
-                          )}
-                        </button>
+                          <Utensils className="w-3 h-3" />
+                          <span>Order (Zomato)</span>
+                          <ExternalLink className="w-2.5 h-2.5 group-hover/btn:translate-x-0.5 transition-transform" />
+                        </a>
                       </div>
                     </div>
                   </motion.div>
@@ -392,17 +384,16 @@ export default function MenuSection() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button
-                    onClick={() => {
-                      handleAddToCart(selectedDishDetail);
-                      setSelectedDishDetail(null);
-                      setIsDrawerOpen(true);
-                    }}
-                    className="w-full py-3 rounded-xl bg-gold-gradient text-forest-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg"
+                  <a
+                    href={zomatoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3.5 rounded-xl bg-gold-gradient text-forest-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg hover:shadow-gold/30 transition-all active:scale-95 group"
                   >
-                    <ShoppingBag className="w-4 h-4" />
-                    <span>Add to Cart & Checkout • ₹{selectedDishDetail.price}</span>
-                  </button>
+                    <Utensils className="w-4 h-4 text-forest-950" />
+                    <span>Order this on Zomato • ₹{selectedDishDetail.price}</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-forest-950 group-hover:translate-x-0.5 transition-transform" />
+                  </a>
                 </div>
               </div>
             </motion.div>

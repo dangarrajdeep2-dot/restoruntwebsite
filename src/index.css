@@ -73,18 +73,3 @@
   background-image: radial-gradient(rgba(212, 162, 76, 0.08) 1px, transparent 0);
   background-size: 24px 24px;
 }
-
-/* Custom Gold Cursor (desktop mouse only) */
-@media (pointer: fine) and (min-width: 1024px) {
-  body.custom-cursor-active {
-    cursor: none;
-  }
-  body.custom-cursor-active a,
-  body.custom-cursor-active button,
-  body.custom-cursor-active input,
-  body.custom-cursor-active select,
-  body.custom-cursor-active textarea,
-  body.custom-cursor-active [role="button"] {
-    cursor: none;
-  }
-}

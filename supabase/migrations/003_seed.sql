@@ -17,6 +17,7 @@ INSERT INTO public.settings (
   is_open,
   delivery_charge,
   min_order,
+  zomato_url,
   announcement
 ) VALUES (
   'Nandanvan Multicuisine Restaurant',
@@ -32,6 +33,7 @@ INSERT INTO public.settings (
   TRUE,
   40.00,
   200.00,
+  'https://www.zomato.com/rajkot/restaurants?q=Nandanvan',
   '✨ Experience royal dining in Rajkot. Book your weekend table in advance! Flat 15% off on dine-in above ₹1500.'
 ) ON CONFLICT DO NOTHING;
 

@@ -167,6 +167,21 @@ export default function AdminSettings() {
               className="w-full px-3 py-2 rounded-xl bg-forest-950 border border-gold/25 text-cream font-mono focus:outline-none focus:border-gold"
             />
           </div>
+
+          <div>
+            <label className="block text-cream/80 font-medium mb-1">Official Zomato Order Link</label>
+            <input
+              type="text"
+              name="zomato_url"
+              value={form.zomato_url || ''}
+              onChange={handleChange}
+              placeholder="https://www.zomato.com/rajkot/restaurants?q=Nandanvan"
+              className="w-full px-3 py-2 rounded-xl bg-forest-950 border border-gold/25 text-cream font-mono focus:outline-none focus:border-gold"
+            />
+            <p className="text-[10px] text-cream/50 mt-1">
+              Clicking "Order Online" on the website will redirect customers to this Zomato page.
+            </p>
+          </div>
         </div>
 
         {/* Pricing & Fees */}

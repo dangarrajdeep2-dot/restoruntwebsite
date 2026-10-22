@@ -10,7 +10,9 @@ import {
   Calendar,
   Globe,
   ShieldCheck,
-  Clock
+  Clock,
+  Utensils,
+  ExternalLink
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
@@ -154,19 +156,18 @@ export default function Navbar({ onOpenReserve, onOpenTrackOrder, settings }) {
                 {isDark ? <Sun className="w-4 h-4 text-gold" /> : <Moon className="w-4 h-4 text-gold" />}
               </button>
 
-              {/* Cart Drawer Trigger */}
-              <button
-                onClick={() => setIsDrawerOpen(true)}
-                className="relative p-2 rounded-lg bg-forest-900/60 border border-gold/20 text-cream/80 hover:text-gold hover:border-gold/40 transition-all"
-                aria-label="Open Cart"
+              {/* Order on Zomato CTA */}
+              <a
+                href={settings?.zomato_url || "https://www.zomato.com/rajkot/restaurants?q=Nandanvan"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-forest-900/80 border border-gold/30 text-gold hover:border-gold hover:bg-gold/10 text-xs font-semibold tracking-wider uppercase transition-all backdrop-blur-sm group"
+                title="Order on Zomato"
               >
-                <ShoppingBag className="w-4 h-4 text-gold" />
-                {itemCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-saffron text-white text-[11px] font-bold rounded-full flex items-center justify-center animate-bounce">
-                    {itemCount}
-                  </span>
-                )}
-              </button>
+                <Utensils className="w-3.5 h-3.5 text-gold group-hover:scale-110 transition-transform" />
+                <span>Zomato</span>
+                <ExternalLink className="w-3 h-3 text-gold/70" />
+              </a>
 
               {/* Reserve Table CTA (Desktop) */}
               <button
@@ -241,6 +242,18 @@ export default function Navbar({ onOpenReserve, onOpenTrackOrder, settings }) {
             </div>
 
             <div className="pt-6 border-t border-gold/20 flex flex-col space-y-3">
+              <a
+                href={settings?.zomato_url || "https://www.zomato.com/rajkot/restaurants?q=Nandanvan"}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full py-3 rounded-xl bg-forest-900 border border-gold/40 text-cream font-semibold text-xs tracking-wider uppercase flex items-center justify-center space-x-2 hover:border-gold transition-colors"
+              >
+                <Utensils className="w-4 h-4 text-gold" />
+                <span>Order on Zomato</span>
+                <ExternalLink className="w-3.5 h-3.5 text-gold/70" />
+              </a>
+
               <button
                 onClick={() => {
                   setIsMobileMenuOpen(false);

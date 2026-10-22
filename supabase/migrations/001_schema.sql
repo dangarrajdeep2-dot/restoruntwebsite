@@ -179,6 +179,7 @@ CREATE TABLE IF NOT EXISTS public.settings (
   is_open BOOLEAN NOT NULL DEFAULT TRUE,
   delivery_charge NUMERIC(10, 2) NOT NULL DEFAULT 40.00,
   min_order NUMERIC(10, 2) NOT NULL DEFAULT 200.00,
+  zomato_url TEXT DEFAULT 'https://www.zomato.com/rajkot/restaurants?q=Nandanvan',
   announcement TEXT DEFAULT 'Welcome to Nandanvan - Authentic Multicuisine Delights in Rajkot',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

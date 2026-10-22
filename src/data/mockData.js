@@ -13,6 +13,7 @@ export const initialSettings = {
   is_open: true,
   delivery_charge: 40.00,
   min_order: 200.00,
+  zomato_url: 'https://www.zomato.com/rajkot/restaurants?q=Nandanvan',
   announcement: '✨ Experience royal dining in Rajkot. Book your weekend table in advance! Flat 15% off on dine-in above ₹1500.'
 };
 

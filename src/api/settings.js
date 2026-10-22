@@ -10,7 +10,8 @@ const getLocalSettings = () => {
     return initialSettings;
   }
   try {
-    return JSON.parse(stored);
+    const parsed = JSON.parse(stored);
+    return { ...initialSettings, ...parsed };
   } catch {
     return initialSettings;
   }
