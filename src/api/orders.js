@@ -193,6 +193,63 @@ export async function updateOrderStatus(orderId, status) {
 
 export async function createTableOrder({ table_number, waiter_name, waiter_id, customer_name, phone, items, notes }) {
   const currentOrders = getLocalOrders();
+  const tableStr = String(table_number).trim();
+
+  // Check if this table already has an active running order (not completed or cancelled)
+  const existingOrder = currentOrders.find(
+    (o) => String(o.table_number).trim() === tableStr &&
+           o.status !== 'completed' &&
+           o.status !== 'cancelled'
+  );
+
+  if (existingOrder) {
+    // MERGE INTO EXISTING TABLE ORDER (ROUND 2 / REPEAT ORDER)
+    const roundNumber = (existingOrder.rounds || 1) + 1;
+    existingOrder.rounds = roundNumber;
+
+    // Append new items to the table order
+    const newItems = items.map((it, idx) => ({
+      id: it.id || `item-r${roundNumber}-${Date.now()}-${idx}`,
+      name: it.name,
+      price: Number(it.price),
+      qty: Number(it.qty),
+      notes: it.notes || '',
+      is_prepared: false,
+      round: roundNumber
+    }));
+
+    existingOrder.items = [...(existingOrder.items || []), ...newItems];
+
+    // Append instructions / notes
+    if (notes && notes.trim()) {
+      existingOrder.notes = existingOrder.notes
+        ? `${existingOrder.notes} | [R${roundNumber}]: ${notes.trim()}`
+        : `[R${roundNumber}]: ${notes.trim()}`;
+    }
+
+    // Recalculate combined subtotal, GST, and total for ALL items consumed
+    const combinedSubtotal = existingOrder.items.reduce(
+      (sum, item) => sum + (Number(item.price) * Number(item.qty)), 
+      0
+    );
+    const gst = Math.round(combinedSubtotal * 0.05); // 5% GST
+    const combinedTotal = combinedSubtotal + gst;
+
+    existingOrder.subtotal = combinedSubtotal;
+    existingOrder.gst = gst;
+    existingOrder.total = combinedTotal;
+
+    // Send back to kitchen so Cooker KDS prepares the new dishes
+    existingOrder.status = 'sent_to_kitchen';
+    existingOrder.updated_at = new Date().toISOString();
+
+    saveLocalOrders(currentOrders);
+    window.dispatchEvent(new Event('nandanvan_order_update'));
+
+    return { data: existingOrder, isAppended: true, round: roundNumber, error: null };
+  }
+
+  // FIRST ORDER FOR THIS TABLE (ROUND 1)
   const subtotal = items.reduce((sum, item) => sum + (Number(item.price) * Number(item.qty)), 0);
   const gst = Math.round(subtotal * 0.05); // 5% GST
   const total = subtotal + gst;
@@ -202,11 +259,11 @@ export async function createTableOrder({ table_number, waiter_name, waiter_id, c
   const newOrder = {
     id: `ord-table-${Date.now()}`,
     order_number,
-    table_number: String(table_number),
+    table_number: tableStr,
     order_type: 'dine-in',
     waiter_id: waiter_id || 'staff-waiter-01',
     waiter_name: waiter_name || 'Captain',
-    customer_name: customer_name || `Table ${table_number} Guest`,
+    customer_name: customer_name || `Table ${tableStr} Guest`,
     phone: phone || '',
     status: 'sent_to_kitchen', // sent_to_kitchen | ready_to_pick | served | completed
     subtotal,
@@ -215,6 +272,7 @@ export async function createTableOrder({ table_number, waiter_name, waiter_id, c
     total,
     notes: notes || '',
     payment_method: 'UPI',
+    rounds: 1,
     created_at: new Date().toISOString(),
     items: items.map((it, idx) => ({
       id: it.id || `item-${idx}`,
@@ -222,7 +280,8 @@ export async function createTableOrder({ table_number, waiter_name, waiter_id, c
       price: Number(it.price),
       qty: Number(it.qty),
       notes: it.notes || '',
-      is_prepared: false
+      is_prepared: false,
+      round: 1
     }))
   };
 
@@ -230,7 +289,7 @@ export async function createTableOrder({ table_number, waiter_name, waiter_id, c
   saveLocalOrders(currentOrders);
   window.dispatchEvent(new Event('nandanvan_order_update'));
 
-  return { data: newOrder, error: null };
+  return { data: newOrder, isAppended: false, round: 1, error: null };
 }
 
 export async function toggleOrderItemPrepared(orderId, itemIndex) {

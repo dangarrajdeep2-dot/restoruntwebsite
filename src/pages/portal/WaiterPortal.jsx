@@ -163,7 +163,7 @@ export default function WaiterPortal() {
       notes: i.notes || '',
     }));
 
-    const { data, error } = await createTableOrder({
+    const res = await createTableOrder({
       table_number: tableNumber,
       waiter_name: profile?.full_name || 'Captain',
       waiter_id: profile?.id || 'staff-waiter-01',
@@ -175,8 +175,8 @@ export default function WaiterPortal() {
 
     setIsSubmitting(false);
 
-    if (error) {
-      alert('Error sending KOT: ' + error.message);
+    if (res.error) {
+      alert('Error sending KOT: ' + res.error.message);
       return;
     }
 
@@ -389,21 +389,45 @@ ${upiUri}
 
               {/* Table Quick Select Pills (Clean 4 cols on mobile, 8 on desktop) */}
               <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1.5 sm:gap-2">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 'VIP1'].map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setTableNumber(String(t))}
-                    className={`py-2 rounded-xl text-xs font-bold transition-all ${
-                      tableNumber === String(t)
-                        ? 'bg-gold-gradient text-forest-950 shadow-md scale-105'
-                        : 'bg-forest-950 border border-gold/20 text-cream/80 hover:border-gold'
-                    }`}
-                  >
-                    T-{t}
-                  </button>
-                ))}
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 'VIP1'].map((t) => {
+                  const tStr = String(t);
+                  const isRunning = activeOrders.some((o) => String(o.table_number).trim() === tStr);
+                  const isSelected = tableNumber === tStr;
+
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setTableNumber(tStr)}
+                      className={`relative py-2 rounded-xl text-xs font-bold transition-all ${
+                        isSelected
+                          ? 'bg-gold-gradient text-forest-950 shadow-md scale-105'
+                          : isRunning
+                          ? 'bg-forest-900 border border-emerald-500/50 text-emerald-300'
+                          : 'bg-forest-950 border border-gold/20 text-cream/80 hover:border-gold'
+                      }`}
+                    >
+                      <span>T-{t}</span>
+                      {isRunning && (
+                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-forest-950" title="Active Running Table" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
+
+              {/* Running Table Notice */}
+              {(() => {
+                const existing = activeOrders.find((o) => String(o.table_number).trim() === String(tableNumber).trim());
+                if (!existing) return null;
+                return (
+                  <div className="p-2.5 rounded-xl bg-gold/15 border border-gold/40 text-xs text-gold flex items-center justify-between">
+                    <span>
+                      ⚡ <strong>Table #{tableNumber} has an active running order</strong> ({existing.items?.length || 0} items). Added items will be merged into <strong>Round {(existing.rounds || 1) + 1}</strong> with a single combined bill!
+                    </span>
+                  </div>
+                );
+              })()}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-gold/15">
                 <div>
@@ -667,8 +691,14 @@ ${upiUri}
                       <div className="py-2.5 space-y-1 border-b border-gold/15 text-xs text-cream/80">
                         {order.items?.map((it, idx) => (
                           <div key={idx} className="flex items-center justify-between">
-                            <span>
-                              {it.name} <strong className="text-gold">x{it.qty}</strong>
+                            <span className="flex items-center space-x-1.5">
+                              <span>{it.name}</span>
+                              <strong className="text-gold">x{it.qty}</strong>
+                              {it.round && it.round > 1 && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-saffron/20 border border-saffron/30 text-saffron font-bold">
+                                  R{it.round}
+                                </span>
+                              )}
                             </span>
                             <span className="text-cream/50">₹{it.price * it.qty}</span>
                           </div>
@@ -688,24 +718,48 @@ ${upiUri}
                           </button>
                         )}
 
-                        {/* 2. If already Served -> Ready to Bill (WhatsApp & UPI QR) */}
+                        {/* 2. If already Served -> Option to Add More Food OR Ready to Bill */}
                         {isServed && (
-                          <button
-                            onClick={() => openBillingModal(order)}
-                            className="flex-1 py-3 rounded-xl bg-gold-gradient text-forest-950 font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg hover:shadow-gold/30 active:scale-95"
-                          >
-                            <QrCode className="w-4 h-4" />
-                            <span>READY TO BILL (WHATSAPP & UPI QR)</span>
-                          </button>
+                          <div className="flex-1 flex gap-2">
+                            <button
+                              onClick={() => {
+                                setTableNumber(String(order.table_number));
+                                setActiveTab('new_order');
+                              }}
+                              className="px-3.5 py-3 rounded-xl bg-forest-950 border border-gold/40 text-gold hover:bg-gold/15 font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all active:scale-95 shadow-sm"
+                              title="Customer wants to order additional food"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>Add Items</span>
+                            </button>
+
+                            <button
+                              onClick={() => openBillingModal(order)}
+                              className="flex-1 py-3 rounded-xl bg-gold-gradient text-forest-950 font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg hover:shadow-gold/30 active:scale-95"
+                            >
+                              <QrCode className="w-4 h-4" />
+                              <span>READY TO BILL (WHATSAPP & UPI QR)</span>
+                            </button>
+                          </div>
                         )}
 
-                        {/* 3. If Still Cooking -> Option to also bill or wait */}
+                        {/* 3. If Still Cooking -> Option to also add more or bill */}
                         {isCooking && (
                           <div className="flex-1 flex gap-2">
                             <div className="flex-1 py-2 px-3 rounded-xl bg-forest-950 border border-gold/20 text-[11px] text-cream/60 flex items-center justify-center space-x-1.5">
                               <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin" />
-                              <span>Cook is preparing in Kitchen</span>
+                              <span>Cook is preparing {order.rounds > 1 ? `(Round ${order.rounds})` : ''}</span>
                             </div>
+                            <button
+                              onClick={() => {
+                                setTableNumber(String(order.table_number));
+                                setActiveTab('new_order');
+                              }}
+                              className="px-3 py-2 rounded-xl bg-forest-950 border border-gold/30 text-gold text-xs font-semibold hover:bg-gold/15"
+                              title="Add more items to this order"
+                            >
+                              + Items
+                            </button>
                             <button
                               onClick={() => openBillingModal(order)}
                               className="px-3 py-2 rounded-xl bg-forest-900 border border-gold/30 text-gold text-xs font-semibold hover:bg-gold/20"

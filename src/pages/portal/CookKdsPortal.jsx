@@ -276,6 +276,11 @@ export default function CookKdsPortal() {
                           <span className="font-serif text-3xl font-black text-gold tracking-tight">
                             TABLE #{order.table_number}
                           </span>
+                          {order.rounds > 1 && (
+                            <span className="px-2 py-0.5 rounded-full bg-saffron/20 border border-saffron/40 text-saffron text-[10px] font-bold">
+                              Round {order.rounds} KOT
+                            </span>
+                          )}
                           <span className="px-2 py-0.5 rounded-md bg-forest-900 border border-gold/30 text-[10px] font-mono text-cream font-bold">
                             #{orderIndex + 1} FIFO
                           </span>
@@ -313,12 +318,12 @@ export default function CookKdsPortal() {
 
                       return (
                         <div
-                          key={idx}
+                          key={item.id || idx}
                           onClick={() => handleToggleItem(order.id, idx)}
                           className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                             isPrepared
-                              ? 'bg-emerald-950/70 border-emerald-500/60 text-emerald-200'
-                              : 'bg-forest-950/80 border-gold/20 hover:border-gold/60 text-cream'
+                              ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300/80'
+                              : 'bg-forest-950/90 border-gold/40 text-cream shadow-md'
                           }`}
                         >
                           <div className="flex items-center space-x-3 min-w-0 pr-2">
@@ -327,16 +332,23 @@ export default function CookKdsPortal() {
                               className={`w-6 h-6 rounded-lg flex items-center justify-center border transition-all flex-shrink-0 ${
                                 isPrepared
                                   ? 'bg-emerald-500 border-emerald-400 text-white'
-                                  : 'border-gold/40 bg-forest-900/60 text-transparent'
+                                  : 'border-gold/50 bg-forest-900 text-transparent'
                               }`}
                             >
                               <Check className="w-4 h-4 stroke-[3]" />
                             </div>
 
                             <div className="min-w-0">
-                              <span className={`text-sm font-bold block truncate ${isPrepared ? 'line-through text-cream/40' : 'text-cream'}`}>
-                                {item.name}
-                              </span>
+                              <div className="flex items-center space-x-1.5">
+                                <span className={`text-sm font-bold block truncate ${isPrepared ? 'line-through text-cream/40' : 'text-cream'}`}>
+                                  {item.name}
+                                </span>
+                                {item.round && item.round > 1 && (
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-saffron/20 border border-saffron/30 text-saffron font-bold flex-shrink-0">
+                                    R{item.round}
+                                  </span>
+                                )}
+                              </div>
                               {item.notes && (
                                 <span className="text-[10px] text-amber-300 block">
                                   {item.notes}
