@@ -19,7 +19,8 @@ import {
   Sparkles,
   Users,
   ChefHat,
-  Utensils
+  Utensils,
+  ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
