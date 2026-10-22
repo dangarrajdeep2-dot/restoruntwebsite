@@ -104,3 +104,71 @@
     -webkit-tap-highlight-color: transparent;
   }
 }
+
+/* Clean Print and PDF generation styles */
+@media print {
+  /* Hide all background website elements */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Only show the active printable invoice */
+  .printable-area,
+  .printable-area * {
+    visibility: visible !important;
+  }
+
+  .printable-area {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 20px 24px !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    z-index: 999999 !important;
+  }
+
+  /* Force dark contrast on light paper */
+  .printable-area .text-cream,
+  .printable-area .text-cream\/90,
+  .printable-area .text-cream\/80,
+  .printable-area .text-cream\/70,
+  .printable-area .text-cream\/60,
+  .printable-area .text-cream\/50 {
+    color: #374151 !important;
+  }
+
+  .printable-area .text-gold,
+  .printable-area .text-gold-gradient {
+    color: #0f172a !important;
+    font-weight: 800 !important;
+  }
+
+  .printable-area .bg-forest-900,
+  .printable-area .bg-forest-950,
+  .printable-area .bg-forest-950\/60,
+  .printable-area .bg-forest-950\/40 {
+    background: #f9fafb !important;
+    border-color: #e5e7eb !important;
+  }
+
+  .printable-area .border-gold\/15,
+  .printable-area .border-gold\/20,
+  .printable-area .border-gold\/25,
+  .printable-area .border-gold\/30,
+  .printable-area .border-gold\/40,
+  .printable-area .border-forest-800 {
+    border-color: #e5e7eb !important;
+  }
+
+  /* Hide print buttons, whatsapp input & close buttons */
+  .no-print {
+    display: none !important;
+  }
+}

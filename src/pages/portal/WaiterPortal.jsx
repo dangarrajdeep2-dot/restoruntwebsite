@@ -6,9 +6,6 @@ import {
   Send, 
   Bell, 
   CheckCircle2, 
-  QrCode, 
-  Share2, 
-  MessageCircle, 
   Clock, 
   Search, 
   Sparkles, 
@@ -46,10 +43,8 @@ export default function WaiterPortal() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Billing Modal State
-  const [billingOrder, setBillingOrder] = useState(null);
-  const [billPhone, setBillPhone] = useState('');
-  const [billSentSuccess, setBillSentSuccess] = useState(false);
+  // Table Action Feedback Banner
+  const [actionFeedback, setActionFeedback] = useState(null);
 
   // Load initial data
   const loadData = async (isPoll = false) => {
@@ -195,88 +190,16 @@ export default function WaiterPortal() {
     loadData(true);
   };
 
-  // Generate UPI QR URI & WhatsApp Bill
-  const openBillingModal = (order) => {
-    setBillingOrder(order);
-    setBillPhone(order.phone || '');
-    setBillSentSuccess(false);
-  };
+  // Mark Table Done & Ready for Next Customer
+  const handleMarkTableDone = async (orderId, tableNumber) => {
+    const confirmDone = window.confirm(`Table #${tableNumber} ka dining complete ho gaya hai? Is table ko "Done & Ready" mark karein?`);
+    if (!confirmDone) return;
 
-  const upiId = settings?.upi_id || 'nandanvan@oksbi';
-  const upiName = settings?.upi_name || 'Nandanvan Multicuisine Restaurant';
-  const gstRate = settings?.gst_rate ?? 5;
-
-  const calculateBillTotals = (order) => {
-    if (!order) return { subtotal: 0, gst: 0, total: 0 };
-    const subtotal = order.subtotal || order.items?.reduce((s, it) => s + it.price * it.qty, 0) || 0;
-    const gst = Math.round(subtotal * (gstRate / 100));
-    const total = subtotal + gst;
-    return { subtotal, gst, total };
-  };
-
-  const getDynamicUpiUri = (order) => {
-    if (!order) return '';
-    const { total } = calculateBillTotals(order);
-    const note = `Table ${order.table_number || 'Dine-In'} Bill #${order.order_number}`;
-    return `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(upiName)}&am=${total}&cu=INR&tn=${encodeURIComponent(note)}`;
-  };
-
-  const getUpiQrImageUrl = (order) => {
-    const upiUri = getDynamicUpiUri(order);
-    return `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiUri)}`;
-  };
-
-  const handleSendWhatsAppBill = () => {
-    if (!billingOrder) return;
-    const cleanPhone = billPhone.replace(/[^0-9]/g, '').slice(-10);
-    if (cleanPhone.length < 10) {
-      alert('Please enter a valid 10-digit customer WhatsApp number');
-      return;
-    }
-
-    const { subtotal, gst, total } = calculateBillTotals(billingOrder);
-    const upiUri = getDynamicUpiUri(billingOrder);
-
-    // Format itemized receipt
-    const itemsText = (billingOrder.items || [])
-      .map((it, idx) => `${idx + 1}. ${it.name} x${it.qty} = ₹${it.price * it.qty}`)
-      .join('\n');
-
-    const message = 
-`🍽️ *NANDANVAN MULTICUISINE RESTAURANT*
-📍 Near Munjka, Kalawad Road, Rajkot
-📞 +91 98250 84721
-──────────────────────
-🧾 *DINE-IN BILL - TABLE #${billingOrder.table_number || '1'}*
-📋 Order: ${billingOrder.order_number}
-📅 Date: ${new Date().toLocaleDateString('en-IN')} | ⏰ ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-Waitstaff: ${billingOrder.waiter_name || profile?.full_name || 'Captain'}
-──────────────────────
-${itemsText}
-──────────────────────
-Subtotal: ₹${subtotal}
-GST (${gstRate}%): ₹${gst}
-*GRAND TOTAL: ₹${total}*
-──────────────────────
-💳 *Pay Instantly via UPI:*
-${upiUri}
-(UPI ID: ${upiId})
-
-🙏 *Thank you for dining at Nandanvan! We hope you loved our food and hospitality. Have a wonderful day & visit us again soon!* ✨`;
-
-    const whatsappUrl = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-    setBillSentSuccess(true);
-  };
-
-  const handleCloseTableBill = async () => {
-    if (!billingOrder) return;
-    await completeTableBill(billingOrder.id, {
-      phone: billPhone,
-      customer_name: billingOrder.customer_name,
-      payment_method: 'UPI',
+    await completeTableBill(orderId, {
+      payment_method: 'COMPLETED'
     });
-    setBillingOrder(null);
+    setActionFeedback(`Table #${tableNumber} marked Done, Clean & Ready for new guests! ✨`);
+    setTimeout(() => setActionFeedback(null), 4000);
     loadData(true);
   };
 
@@ -375,6 +298,13 @@ ${upiUri}
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 p-3 sm:p-4 overflow-y-auto">
+        {/* Table Action Feedback Banner */}
+        {actionFeedback && (
+          <div className="max-w-2xl mx-auto mb-3 p-3 rounded-2xl bg-emerald-600 text-white text-xs font-bold flex items-center space-x-2 shadow-xl border border-emerald-400 animate-pulse">
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+            <span>{actionFeedback}</span>
+          </div>
+        )}
         {/* ==================== TAB 1: NEW TABLE ORDER ==================== */}
         {activeTab === 'new_order' && (
           <div className="space-y-4 max-w-2xl mx-auto">
@@ -718,7 +648,7 @@ ${upiUri}
                           </button>
                         )}
 
-                        {/* 2. If already Served -> Option to Add More Food OR Ready to Bill */}
+                        {/* 2. If already Served -> Option to Add More Food OR Mark Done & Table Ready */}
                         {isServed && (
                           <div className="flex-1 flex gap-2">
                             <button
@@ -734,16 +664,16 @@ ${upiUri}
                             </button>
 
                             <button
-                              onClick={() => openBillingModal(order)}
-                              className="flex-1 py-3 rounded-xl bg-gold-gradient text-forest-950 font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg hover:shadow-gold/30 active:scale-95"
+                              onClick={() => handleMarkTableDone(order.id, order.table_number)}
+                              className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/30 active:scale-95 transition-all"
                             >
-                              <QrCode className="w-4 h-4" />
-                              <span>READY TO BILL (WHATSAPP & UPI QR)</span>
+                              <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+                              <span>MARK DONE & TABLE READY ✅</span>
                             </button>
                           </div>
                         )}
 
-                        {/* 3. If Still Cooking -> Option to also add more or bill */}
+                        {/* 3. If Still Cooking -> Option to also add more or mark table done */}
                         {isCooking && (
                           <div className="flex-1 flex gap-2">
                             <div className="flex-1 py-2 px-3 rounded-xl bg-forest-950 border border-gold/20 text-[11px] text-cream/60 flex items-center justify-center space-x-1.5">
@@ -761,10 +691,11 @@ ${upiUri}
                               + Items
                             </button>
                             <button
-                              onClick={() => openBillingModal(order)}
-                              className="px-3 py-2 rounded-xl bg-forest-900 border border-gold/30 text-gold text-xs font-semibold hover:bg-gold/20"
+                              onClick={() => handleMarkTableDone(order.id, order.table_number)}
+                              className="px-3 py-2 rounded-xl bg-forest-900 border border-emerald-500/30 text-emerald-400 text-xs font-semibold hover:bg-emerald-950/60 transition-colors"
+                              title="Mark table finished"
                             >
-                              Bill
+                              Done & Ready
                             </button>
                           </div>
                         )}
@@ -777,126 +708,6 @@ ${upiUri}
           </div>
         )}
       </main>
-
-      {/* ==================== BILLING & WHATSAPP UPI MODAL ==================== */}
-      {billingOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
-          <div className="w-full max-w-md bg-forest-900 border border-gold/40 rounded-3xl shadow-2xl p-5 text-xs relative">
-            <button
-              onClick={() => setBillingOrder(null)}
-              className="absolute top-4 right-4 p-1.5 rounded-full bg-forest-950 text-cream/60 hover:text-gold"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            {/* Bill Header */}
-            <div className="text-center pb-3 border-b border-gold/20">
-              <div className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-gold/15 text-gold text-[10px] font-bold uppercase mb-1">
-                <span>Nandanvan Multicuisine Restaurant</span>
-              </div>
-              <h3 className="font-serif text-xl font-bold text-cream">
-                Table #{billingOrder.table_number || '1'} Final Bill
-              </h3>
-              <p className="text-[10px] text-cream/50">Order Number: {billingOrder.order_number}</p>
-            </div>
-
-            {/* Itemized summary */}
-            <div className="py-3 space-y-1.5 border-b border-gold/15 max-h-36 overflow-y-auto">
-              {billingOrder.items?.map((it, idx) => (
-                <div key={idx} className="flex justify-between text-cream/80 text-[11px]">
-                  <span>{it.name} x{it.qty}</span>
-                  <span className="font-mono">₹{it.price * it.qty}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Totals */}
-            {(() => {
-              const { subtotal, gst, total } = calculateBillTotals(billingOrder);
-              return (
-                <div className="py-2.5 border-b border-gold/20 space-y-1 text-xs">
-                  <div className="flex justify-between text-cream/60">
-                    <span>Subtotal</span>
-                    <span className="font-mono">₹{subtotal}</span>
-                  </div>
-                  <div className="flex justify-between text-cream/60">
-                    <span>GST ({gstRate}%)</span>
-                    <span className="font-mono">₹{gst}</span>
-                  </div>
-                  <div className="flex justify-between text-base font-serif font-black text-gold pt-1">
-                    <span>Total Amount Payable</span>
-                    <span className="font-mono">₹{total}</span>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Dynamic UPI QR Code Box */}
-            <div className="py-3 flex flex-col items-center justify-center bg-forest-950/70 rounded-2xl my-3 border border-gold/20 p-3">
-              <span className="text-[10px] text-gold uppercase tracking-wider font-bold mb-2">
-                Scan with GPay / PhonePe / Paytm / BHIM
-              </span>
-              <div className="p-2 bg-white rounded-xl shadow-lg">
-                <img
-                  src={getUpiQrImageUrl(billingOrder)}
-                  alt="Dynamic UPI QR Code"
-                  className="w-36 h-36 object-contain"
-                />
-              </div>
-              <span className="text-[10px] font-mono text-cream/60 mt-2">
-                UPI ID: <strong className="text-gold">{upiId}</strong>
-              </span>
-            </div>
-
-            {/* Customer WhatsApp Phone Input */}
-            <div className="space-y-1 mb-3">
-              <label className="block text-[11px] font-semibold text-cream/80">
-                Customer Mobile Number (For WhatsApp Bill) *
-              </label>
-              <div className="flex items-center space-x-2">
-                <span className="px-2.5 py-2 rounded-xl bg-forest-950 border border-gold/25 text-gold font-bold text-xs">
-                  +91
-                </span>
-                <input
-                  type="tel"
-                  placeholder="98250 XXXXX"
-                  value={billPhone}
-                  onChange={(e) => setBillPhone(e.target.value)}
-                  className="flex-1 px-3 py-2 rounded-xl bg-forest-950 border border-gold/25 text-xs text-cream font-mono font-bold focus:outline-none focus:border-gold"
-                />
-              </div>
-            </div>
-
-            {billSentSuccess && (
-              <div className="p-2.5 rounded-xl bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-[11px] mb-3 flex items-center space-x-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>WhatsApp opened! Bill & UPI payment link delivered to customer.</span>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={handleSendWhatsAppBill}
-                className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg transition-all active:scale-95"
-              >
-                <MessageCircle className="w-4 h-4 fill-white text-emerald-600" />
-                <span>Send Bill & UPI on WhatsApp 💬</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleCloseTableBill}
-                className="w-full py-2.5 rounded-xl bg-gold-gradient text-forest-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition-all active:scale-95"
-              >
-                <Check className="w-3.5 h-3.5 stroke-[3]" />
-                <span>Mark Payment Received & Free Table</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
