@@ -186,7 +186,7 @@ export default function App() {
 
   // Public Dining Website
   return (
-    <div className="min-h-screen bg-forest-950 text-cream selection:bg-gold selection:text-forest-950 font-sans pb-16 sm:pb-0">
+    <div className="min-h-screen bg-forest-950 text-cream selection:bg-gold selection:text-forest-950 font-sans pb-24 sm:pb-0 overflow-x-hidden w-full max-w-full">
       <Preloader />
       <CustomCursor />
       

@@ -1,11 +1,21 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 
 export default function PremiumDishHeroShowcase() {
   const containerRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Smooth mouse-follow parallax
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || window.matchMedia('(pointer: coarse)').matches);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Parallax active on desktop only
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
@@ -13,11 +23,11 @@ export default function PremiumDishHeroShowcase() {
   const smoothX = useSpring(mouseX, springConfig);
   const smoothY = useSpring(mouseY, springConfig);
 
-  const rotateX = useTransform(smoothY, [-0.5, 0.5], [10, -10]);
-  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-10, 10]);
+  const rotateX = useTransform(smoothY, [-0.5, 0.5], [8, -8]);
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-8, 8]);
 
   const handleMouseMove = (e) => {
-    if (!containerRef.current) return;
+    if (isMobile || !containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -26,6 +36,7 @@ export default function PremiumDishHeroShowcase() {
   };
 
   const handleMouseLeave = () => {
+    if (isMobile) return;
     mouseX.set(0);
     mouseY.set(0);
   };
@@ -35,95 +46,74 @@ export default function PremiumDishHeroShowcase() {
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative w-full max-w-lg mx-auto flex flex-col items-center justify-center select-none py-4"
-      style={{ perspective: 1200 }}
+      className="relative w-full max-w-sm sm:max-w-lg mx-auto flex flex-col items-center justify-center select-none py-2 sm:py-4 px-2"
+      style={{ perspective: isMobile ? 'none' : 1200 }}
     >
-      {/* 1. Ambient Warm Golden Atmosphere Behind Dish */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-gold/20 via-saffron/10 to-transparent rounded-full blur-[90px] pointer-events-none" />
+      {/* 1. Ambient Warm Golden Atmosphere */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-gold/15 via-saffron/10 to-transparent rounded-full blur-2xl sm:blur-[80px] pointer-events-none" />
 
-      {/* 2. Interactive Parallax Floating Plate Container */}
+      {/* 2. Plate Container (Static & Clean on mobile, subtle gentle float on desktop) */}
       <motion.div
-        style={{
+        style={isMobile ? {} : {
           rotateX,
           rotateY,
           transformStyle: 'preserve-3d',
         }}
-        animate={{
-          y: [-8, 8, -8],
-          rotateZ: [-0.5, 0.5, -0.5],
+        animate={isMobile ? {} : {
+          y: [-6, 6, -6],
+          rotateZ: [-0.3, 0.3, -0.3],
         }}
-        transition={{
-          y: {
-            duration: 4.5,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          },
-          rotateZ: {
-            duration: 7,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          },
+        transition={isMobile ? {} : {
+          y: { duration: 4.5, repeat: Infinity, ease: 'easeInOut' },
+          rotateZ: { duration: 7, repeat: Infinity, ease: 'easeInOut' },
         }}
-        className="relative w-[300px] h-[300px] sm:w-[420px] sm:h-[420px] flex items-center justify-center cursor-pointer"
+        className="relative w-[230px] h-[230px] sm:w-[380px] sm:h-[380px] lg:w-[420px] lg:h-[420px] flex items-center justify-center"
       >
-        {/* Subtle Outer 24K Gold Filigree Accent Rings */}
-        <div className="absolute inset-0 rounded-full border border-gold/30 shadow-[0_0_40px_rgba(212,162,76,0.18)] pointer-events-none" />
-        <div className="absolute -inset-3 rounded-full border border-dashed border-gold/15 pointer-events-none" />
+        {/* Subtle Outer 24K Gold Filigree Ring */}
+        <div className="absolute inset-0 rounded-full border border-gold/30 shadow-[0_0_30px_rgba(212,162,76,0.15)] pointer-events-none" />
+        <div className="absolute -inset-2 sm:-inset-3 rounded-full border border-dashed border-gold/15 pointer-events-none" />
 
         {/* High-Resolution Luxury Plated Gourmet Dish Image */}
-        <div className="relative w-[94%] h-[94%] rounded-full overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.85)] border-2 border-gold/50 bg-forest-950 flex items-center justify-center group">
+        <div className="relative w-[92%] h-[92%] rounded-full overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.85)] border-2 border-gold/50 bg-forest-950 flex items-center justify-center">
           <img
             src="/images/gourmet-hero-dish.jpg"
             alt="Nandanvan Signature Fine Dining Gourmet Creation"
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="w-full h-full object-cover"
             loading="eager"
             onError={(e) => {
-              // Graceful fallback to Unsplash culinary image if local file fails
               e.currentTarget.src =
                 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=85';
             }}
           />
 
-          {/* Realistic Light Steam / Warm Shimmer Overlay */}
-          <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-            <div className="w-36 h-36 bg-white/10 rounded-full blur-2xl animate-pulse opacity-30" />
-          </div>
+          {/* Delicate Steam Overlay (Desktop only) */}
+          {!isMobile && (
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+              <div className="w-28 h-28 bg-white/10 rounded-full blur-2xl opacity-25" />
+            </div>
+          )}
 
-          {/* Fine Ceramic Glass Reflection Highlights */}
+          {/* Shimmer gradient */}
           <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-gold/10 to-transparent pointer-events-none" />
           <div className="absolute inset-0 bg-gradient-to-t from-forest-950/40 via-transparent to-transparent pointer-events-none" />
         </div>
 
-        {/* Dynamic Soft Shadow Beneath Plate */}
-        <motion.div
-          animate={{
-            scale: [0.92, 1.05, 0.92],
-            opacity: [0.5, 0.35, 0.5],
-          }}
-          transition={{
-            duration: 4.5,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-          className="absolute -bottom-8 w-3/4 h-8 bg-black/70 rounded-full blur-xl pointer-events-none"
-        />
+        {/* Shadow beneath plate (Desktop) */}
+        {!isMobile && (
+          <div className="absolute -bottom-6 w-3/4 h-6 bg-black/60 rounded-full blur-xl pointer-events-none" />
+        )}
       </motion.div>
 
-      {/* 3. Understated Luxury Caption (Pure aesthetics, NO ratings, NO order buttons) */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.6 }}
-        className="mt-6 text-center max-w-md px-4"
-      >
-        <div className="inline-flex items-center space-x-1.5 px-3 py-0.5 rounded-full bg-forest-900/80 border border-gold/25 text-gold text-[10px] tracking-widest uppercase font-semibold mb-1.5">
-          <Sparkles className="w-3 h-3 text-gold" />
+      {/* 3. Understated Luxury Caption */}
+      <div className="mt-3 sm:mt-5 text-center max-w-sm px-2">
+        <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-forest-900/80 border border-gold/25 text-gold text-[9px] sm:text-[10px] tracking-widest uppercase font-semibold mb-1">
+          <Sparkles className="w-2.5 h-2.5 text-gold" />
           <span>Nandanvan Signature Creation</span>
         </div>
-        <p className="text-[11px] sm:text-xs text-cream/70 font-light tracking-wide leading-relaxed">
-          Artisanal Gourmet Medallion • 24K Edible Gold • Microgreens • Roasted Heirloom Vegetables
+        <p className="text-[10px] sm:text-xs text-cream/70 font-light tracking-wide leading-relaxed">
+          Gourmet Medallion • 24K Edible Gold • Fresh Microgreens
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 }

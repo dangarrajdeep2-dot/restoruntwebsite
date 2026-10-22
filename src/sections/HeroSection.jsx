@@ -40,11 +40,11 @@ export default function HeroSection({ onOpenReserve, onExploreMenu, settings }) 
               {t.heroDesc}
             </p>
 
-            {/* Quick Action Buttons */}
-            <div className="flex flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 mb-6 sm:mb-10">
+            {/* Quick Action Buttons (Stacked on mobile for full width, row on desktop) */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3 sm:gap-4 mb-6 sm:mb-10 max-w-sm sm:max-w-none mx-auto lg:mx-0">
               <button
                 onClick={onOpenReserve}
-                className="flex-1 sm:flex-none px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-gold-gradient text-forest-950 font-bold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center space-x-2 shadow-[0_4px_25px_rgba(212,162,76,0.35)] hover:shadow-[0_6px_30px_rgba(212,162,76,0.5)] transition-all transform active:scale-95"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-gold-gradient text-forest-950 font-bold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center space-x-2 shadow-[0_4px_25px_rgba(212,162,76,0.35)] hover:shadow-[0_6px_30px_rgba(212,162,76,0.5)] transition-all transform active:scale-95"
               >
                 <Calendar className="w-4 h-4 text-forest-950" />
                 <span>{t.nav.reserveTable}</span>
@@ -54,7 +54,7 @@ export default function HeroSection({ onOpenReserve, onExploreMenu, settings }) 
                 href={settings?.zomato_url || "https://www.zomato.com/rajkot/restaurants?q=Nandanvan"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 sm:flex-none px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-forest-900/80 border border-gold/40 text-cream font-semibold text-xs sm:text-sm tracking-wider uppercase hover:border-gold hover:bg-forest-800 transition-all flex items-center justify-center space-x-2 active:scale-95 backdrop-blur-sm group"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-forest-900/80 border border-gold/40 text-cream font-semibold text-xs sm:text-sm tracking-wider uppercase hover:border-gold hover:bg-forest-800 transition-all flex items-center justify-center space-x-2 active:scale-95 backdrop-blur-sm group"
               >
                 <Utensils className="w-4 h-4 text-gold group-hover:scale-110 transition-transform" />
                 <span>{t.nav.orderOnline}</span>
@@ -64,7 +64,7 @@ export default function HeroSection({ onOpenReserve, onExploreMenu, settings }) 
 
             {/* Key Trust Metrics */}
             <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-4 sm:pt-6 border-t border-gold/20 max-w-md mx-auto lg:mx-0">
-              <div className="flex flex-col items-center lg:items-start">
+              <div className="flex flex-col items-center">
                 <div className="flex items-center space-x-1 text-gold text-base sm:text-lg font-serif font-bold">
                   <span>4.9</span>
                   <Star className="w-3.5 h-3.5 fill-gold text-gold" />
@@ -72,12 +72,12 @@ export default function HeroSection({ onOpenReserve, onExploreMenu, settings }) 
                 <span className="text-[10px] sm:text-[11px] text-cream/60">500+ Reviews</span>
               </div>
 
-              <div className="flex flex-col items-center lg:items-start border-x border-gold/15 px-2">
+              <div className="flex flex-col items-center border-x border-gold/15 px-2">
                 <span className="text-gold text-base sm:text-lg font-serif font-bold">100% Pure</span>
                 <span className="text-[10px] sm:text-[11px] text-cream/60">Gir Desi Ghee</span>
               </div>
 
-              <div className="flex flex-col items-center lg:items-start">
+              <div className="flex flex-col items-center">
                 <span className="text-gold text-base sm:text-lg font-serif font-bold">30+</span>
                 <span className="text-[10px] sm:text-[11px] text-cream/60">Delicacies</span>
               </div>
@@ -85,7 +85,7 @@ export default function HeroSection({ onOpenReserve, onExploreMenu, settings }) 
           </motion.div>
 
           {/* Right Hero Column: Premium Interactive Plated Dish Showcase */}
-          <div className="lg:col-span-6 relative flex items-center justify-center">
+          <div className="lg:col-span-6 relative flex items-center justify-center pt-6 lg:pt-0">
             <PremiumDishHeroShowcase />
           </div>
 

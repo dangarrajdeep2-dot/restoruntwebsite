@@ -278,7 +278,7 @@ ${upiUri}
   const readyForPickOrders = activeOrders.filter((o) => o.status === 'ready_to_pick');
 
   return (
-    <div className="min-h-screen bg-forest-950 text-cream flex flex-col font-sans pb-20 select-none">
+    <div className="min-h-screen bg-forest-950 text-cream flex flex-col font-sans pb-32 sm:pb-24 select-none">
       {/* Top Header Bar */}
       <header className="bg-forest-900/90 border-b border-gold/30 px-4 py-3 sticky top-0 z-30 backdrop-blur-md flex items-center justify-between shadow-xl">
         <div className="flex items-center space-x-2.5">
@@ -381,8 +381,8 @@ ${upiUri}
                 <span className="text-[10px] text-cream/50">Dine-in floor ordering</span>
               </div>
 
-              {/* Table Quick Select Pills */}
-              <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
+              {/* Table Quick Select Pills (Clean 4 cols on mobile, 8 on desktop) */}
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1.5 sm:gap-2">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 'VIP1'].map((t) => (
                   <button
                     key={t}

@@ -75,7 +75,7 @@ export default function TrackOrderModal({ isOpen, onClose, initialOrderNumber = 
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="relative w-full max-w-lg bg-forest-900 border border-gold/30 rounded-2xl shadow-2xl p-6 overflow-hidden"
+          className="relative w-full max-w-lg bg-forest-900 border border-gold/30 rounded-2xl shadow-2xl p-5 sm:p-6 overflow-y-auto max-h-[90vh] my-auto"
         >
           {/* Close button */}
           <button

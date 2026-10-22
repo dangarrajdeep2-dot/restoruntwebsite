@@ -189,8 +189,8 @@ export default function CookKdsPortal() {
       </header>
 
       {/* Filter Tabs */}
-      <div className="bg-forest-950/80 border-b border-gold/20 px-4 py-2.5 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+      <div className="bg-forest-950/80 border-b border-gold/20 px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between overflow-x-auto no-scrollbar">
+        <div className="flex items-center space-x-1.5 sm:space-x-2">
           <button
             onClick={() => setFilter('active')}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center space-x-1.5 ${

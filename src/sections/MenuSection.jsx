@@ -152,7 +152,7 @@ export default function MenuSection({ settings }) {
         </div>
 
         {/* Sticky Category Tabs (Ultra-Clean Horizontal Scroll) */}
-        <div className="sticky top-16 z-30 py-2.5 mb-8 bg-forest-950/95 backdrop-blur-md border-y border-gold/20">
+        <div className="sticky top-14 sm:top-16 z-30 py-2.5 mb-8 bg-forest-950/98 border-y border-gold/20 backdrop-blur-md">
           <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar scroll-smooth">
             <button
               onClick={() => setActiveCategory('all')}
@@ -319,7 +319,7 @@ export default function MenuSection({ settings }) {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-lg bg-forest-900 border border-gold/30 rounded-2xl shadow-2xl overflow-hidden"
+              className="relative w-full max-w-lg bg-forest-900 border border-gold/30 rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] my-auto"
             >
               <button
                 onClick={() => setSelectedDishDetail(null)}

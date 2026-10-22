@@ -66,8 +66,8 @@ export default function Navbar({ onOpenReserve, onOpenTrackOrder, settings }) {
       <header
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
           isScrolled
-            ? 'bg-forest-950/85 backdrop-blur-md border-b border-gold/20 shadow-[0_4px_30px_rgba(0,0,0,0.5)] py-3'
-            : 'bg-gradient-to-b from-forest-950/90 to-transparent py-5'
+            ? 'bg-forest-950/95 backdrop-blur-md border-b border-gold/20 shadow-[0_4px_30px_rgba(0,0,0,0.5)] py-2.5 sm:py-3'
+            : 'bg-gradient-to-b from-forest-950/95 to-transparent py-3 sm:py-5'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -199,7 +199,7 @@ export default function Navbar({ onOpenReserve, onOpenTrackOrder, settings }) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 z-50 w-full sm:w-80 bg-forest-950/95 backdrop-blur-xl border-l border-gold/30 p-6 flex flex-col justify-between shadow-2xl xl:hidden"
+            className="fixed inset-y-0 right-0 z-50 w-full sm:w-80 bg-forest-950/98 border-l border-gold/30 p-6 flex flex-col justify-between shadow-2xl xl:hidden overflow-y-auto"
           >
             <div>
               <div className="flex items-center justify-between pb-6 border-b border-gold/20">

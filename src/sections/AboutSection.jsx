@@ -58,7 +58,7 @@ export default function AboutSection() {
               </div>
 
               {/* Floating badge */}
-              <div className="absolute -top-4 -left-3 sm:-top-6 sm:-left-6 bg-gold-gradient px-3 py-1.5 sm:p-3 rounded-xl sm:rounded-2xl shadow-xl flex items-center space-x-1.5 text-forest-950 font-bold text-[10px] sm:text-xs uppercase tracking-wider">
+              <div className="absolute -top-3 left-2 sm:-top-6 sm:-left-6 bg-gold-gradient px-3 py-1.5 sm:p-3 rounded-xl sm:rounded-2xl shadow-xl flex items-center space-x-1.5 text-forest-950 font-bold text-[10px] sm:text-xs uppercase tracking-wider">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Since 2012</span>
               </div>

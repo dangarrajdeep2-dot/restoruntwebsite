@@ -7,6 +7,16 @@
     color-scheme: dark light;
   }
 
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
     font-family: 'Poppins', sans-serif;
   }
@@ -17,8 +27,8 @@
 
   /* Custom scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
     background: #071711;
@@ -72,4 +82,25 @@
 .bg-grain {
   background-image: radial-gradient(rgba(212, 162, 76, 0.08) 1px, transparent 0);
   background-size: 24px 24px;
+}
+
+/* Mobile clean & neat responsiveness: disable distracting infinite animations and GPU lag */
+@media (max-width: 768px) {
+  .animate-spin-slow {
+    animation: none !important;
+  }
+  
+  /* Disable heavy GPU blur on small mobile screens */
+  .blur-\[140px\],
+  .blur-\[120px\],
+  .blur-\[100px\],
+  .blur-\[90px\] {
+    filter: blur(35px) !important;
+    opacity: 0.25 !important;
+  }
+
+  /* Prevent any tap highlight color box on touch */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
