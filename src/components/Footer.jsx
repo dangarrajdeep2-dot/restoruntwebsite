@@ -82,6 +82,19 @@ export default function Footer() {
               <li><a href="#offers" className="hover:text-gold transition-colors">Today's Offers</a></li>
               <li><a href="#gallery" className="hover:text-gold transition-colors">Ambiance Gallery</a></li>
               <li><a href="#events" className="hover:text-gold transition-colors">Banquets & Lawns</a></li>
+              <li>
+                <a
+                  href="#/portal"
+                  onClick={() => {
+                    window.location.hash = '#/portal';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="hover:text-gold transition-colors text-gold/80 flex items-center space-x-1 font-medium pt-1"
+                >
+                  <ShieldCheck className="w-3 h-3 text-gold" />
+                  <span>Portal</span>
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -131,7 +144,21 @@ export default function Footer() {
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-cream/50 gap-4">
           <p>© {new Date().getFullYear()} Nandanvan Multicuisine Restaurant, Rajkot. All rights reserved.</p>
           
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            {/* Direct Portal Login Link */}
+            <a
+              href="#/portal"
+              onClick={() => {
+                window.location.hash = '#/portal';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-forest-900 border border-gold/30 text-gold hover:bg-gold hover:text-forest-950 text-xs font-bold uppercase tracking-wider transition-all shadow-sm active:scale-95"
+              title="Staff & Operations Portal Login"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Portal</span>
+            </a>
+
             <button
               onClick={scrollToTop}
               className="p-2 rounded-lg bg-forest-900 border border-gold/30 text-gold hover:bg-gold hover:text-forest-950 transition-colors"
