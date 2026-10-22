@@ -132,14 +132,6 @@ export default function Footer() {
           <p>© {new Date().getFullYear()} Nandanvan Multicuisine Restaurant, Rajkot. All rights reserved.</p>
           
           <div className="flex items-center space-x-6">
-            <a
-              href="#/admin"
-              className="text-gold/80 hover:text-gold flex items-center space-x-1.5 transition-colors"
-            >
-              <ShieldCheck className="w-4 h-4" />
-              <span>Staff / Owner Portal</span>
-            </a>
-
             <button
               onClick={scrollToTop}
               className="p-2 rounded-lg bg-forest-900 border border-gold/30 text-gold hover:bg-gold hover:text-forest-950 transition-colors"

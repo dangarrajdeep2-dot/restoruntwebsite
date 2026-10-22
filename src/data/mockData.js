@@ -14,6 +14,9 @@ export const initialSettings = {
   delivery_charge: 40.00,
   min_order: 200.00,
   zomato_url: 'https://www.zomato.com/rajkot/restaurants?q=Nandanvan',
+  upi_id: 'nandanvan@oksbi',
+  upi_name: 'Nandanvan Multicuisine Restaurant',
+  gst_rate: 5,
   announcement: '✨ Experience royal dining in Rajkot. Book your weekend table in advance! Flat 15% off on dine-in above ₹1500.'
 };
 

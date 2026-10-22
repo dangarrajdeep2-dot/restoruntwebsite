@@ -31,14 +31,18 @@ import AdminOffers from './pages/admin/AdminOffers';
 import AdminGallery from './pages/admin/AdminGallery';
 import AdminReviews from './pages/admin/AdminReviews';
 import AdminEnquiries from './pages/admin/AdminEnquiries';
+import AdminStaff from './pages/admin/AdminStaff';
 import AdminSettings from './pages/admin/AdminSettings';
+import PortalLogin from './pages/portal/PortalLogin';
+import WaiterPortal from './pages/portal/WaiterPortal';
+import CookKdsPortal from './pages/portal/CookKdsPortal';
 import NotFound from './pages/NotFound';
 
 import { useAuth } from './context/AuthContext';
 import { getSettings } from './api/settings';
 
 export default function App() {
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  const { user, isAdmin, isWaiter, isCook, loading: authLoading } = useAuth();
   const [currentHash, setCurrentHash] = useState(window.location.hash || '#/');
   const [adminTab, setAdminTab] = useState('dashboard');
   const [trackModalOpen, setTrackModalOpen] = useState(false);
@@ -83,7 +87,69 @@ export default function App() {
     setTrackModalOpen(true);
   };
 
-  // Route: /admin
+  // 1. Cook Kitchen Display System (KDS)
+  if (currentHash.startsWith('#/portal/cook')) {
+    if (authLoading) {
+      return (
+        <div className="min-h-screen bg-[#08130E] flex items-center justify-center text-gold">
+          <div className="w-8 h-8 rounded-full border-2 border-gold border-t-transparent animate-spin" />
+        </div>
+      );
+    }
+    if (!user) {
+      return <PortalLogin onLoginSuccess={() => { window.location.hash = '#/portal/cook'; }} />;
+    }
+    return <CookKdsPortal />;
+  }
+
+  // 2. Waiter Floor Captain Mobile Portal
+  if (currentHash.startsWith('#/portal/waiter')) {
+    if (authLoading) {
+      return (
+        <div className="min-h-screen bg-forest-950 flex items-center justify-center text-gold">
+          <div className="w-8 h-8 rounded-full border-2 border-gold border-t-transparent animate-spin" />
+        </div>
+      );
+    }
+    if (!user) {
+      return <PortalLogin onLoginSuccess={() => { window.location.hash = '#/portal/waiter'; }} />;
+    }
+    return <WaiterPortal />;
+  }
+
+  // 3. General Unified Staff Portal (/#/portal, /#/staff, /#/login)
+  if (currentHash.startsWith('#/portal') || currentHash.startsWith('#/staff') || currentHash.startsWith('#/login')) {
+    if (authLoading) {
+      return (
+        <div className="min-h-screen bg-forest-950 flex items-center justify-center text-gold">
+          <div className="w-8 h-8 rounded-full border-2 border-gold border-t-transparent animate-spin" />
+        </div>
+      );
+    }
+    if (!user) {
+      return <PortalLogin />;
+    }
+    if (isCook) return <CookKdsPortal />;
+    if (isWaiter) return <WaiterPortal />;
+    // If admin, show admin layout
+    return (
+      <AdminLayout activeTab={adminTab} onSelectTab={setAdminTab}>
+        {adminTab === 'dashboard' && <AdminDashboard onNavigate={setAdminTab} />}
+        {adminTab === 'orders' && <AdminOrders />}
+        {adminTab === 'reservations' && <AdminReservations />}
+        {adminTab === 'menu' && <AdminMenu />}
+        {adminTab === 'categories' && <AdminCategories />}
+        {adminTab === 'offers' && <AdminOffers />}
+        {adminTab === 'gallery' && <AdminGallery />}
+        {adminTab === 'reviews' && <AdminReviews />}
+        {adminTab === 'enquiries' && <AdminEnquiries />}
+        {adminTab === 'staff' && <AdminStaff />}
+        {adminTab === 'settings' && <AdminSettings />}
+      </AdminLayout>
+    );
+  }
+
+  // 4. Admin Management Route (/#/admin)
   const isAdminRoute = currentHash.startsWith('#/admin');
 
   if (isAdminRoute) {
@@ -97,29 +163,24 @@ export default function App() {
 
     if (!user || !isAdmin) {
       return (
-        <>
-          <CustomCursor />
-          <AdminLogin onLoginSuccess={() => setAdminTab('dashboard')} />
-        </>
+        <PortalLogin onLoginSuccess={() => { setAdminTab('dashboard'); }} />
       );
     }
 
     return (
-      <>
-        <CustomCursor />
-        <AdminLayout activeTab={adminTab} onSelectTab={setAdminTab}>
-          {adminTab === 'dashboard' && <AdminDashboard onNavigate={setAdminTab} />}
-          {adminTab === 'orders' && <AdminOrders />}
-          {adminTab === 'reservations' && <AdminReservations />}
-          {adminTab === 'menu' && <AdminMenu />}
-          {adminTab === 'categories' && <AdminCategories />}
-          {adminTab === 'offers' && <AdminOffers />}
-          {adminTab === 'gallery' && <AdminGallery />}
-          {adminTab === 'reviews' && <AdminReviews />}
-          {adminTab === 'enquiries' && <AdminEnquiries />}
-          {adminTab === 'settings' && <AdminSettings />}
-        </AdminLayout>
-      </>
+      <AdminLayout activeTab={adminTab} onSelectTab={setAdminTab}>
+        {adminTab === 'dashboard' && <AdminDashboard onNavigate={setAdminTab} />}
+        {adminTab === 'orders' && <AdminOrders />}
+        {adminTab === 'reservations' && <AdminReservations />}
+        {adminTab === 'menu' && <AdminMenu />}
+        {adminTab === 'categories' && <AdminCategories />}
+        {adminTab === 'offers' && <AdminOffers />}
+        {adminTab === 'gallery' && <AdminGallery />}
+        {adminTab === 'reviews' && <AdminReviews />}
+        {adminTab === 'enquiries' && <AdminEnquiries />}
+        {adminTab === 'staff' && <AdminStaff />}
+        {adminTab === 'settings' && <AdminSettings />}
+      </AdminLayout>
     );
   }
 

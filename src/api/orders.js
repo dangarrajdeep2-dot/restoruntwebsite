@@ -179,9 +179,105 @@ export async function updateOrderStatus(orderId, status) {
       orders[idx].status = status;
       orders[idx].updated_at = new Date().toISOString();
       saveLocalOrders(orders);
+      window.dispatchEvent(new Event('nandanvan_order_update'));
       return { data: orders[idx], error: null };
     }
     return { data: null, error: new Error('Order not found') };
   }
-  return await supabase.from('orders').update({ status }).eq('id', orderId).select().single();
+  const res = await supabase.from('orders').update({ status }).eq('id', orderId).select().single();
+  window.dispatchEvent(new Event('nandanvan_order_update'));
+  return res;
+}
+
+export async function createTableOrder({ table_number, waiter_name, waiter_id, customer_name, phone, items, notes }) {
+  const currentOrders = getLocalOrders();
+  const subtotal = items.reduce((sum, item) => sum + (Number(item.price) * Number(item.qty)), 0);
+  const gst = Math.round(subtotal * 0.05); // 5% GST
+  const total = subtotal + gst;
+  const seq = Math.floor(1000 + Math.random() * 9000);
+  const order_number = `NV-T${seq}`;
+
+  const newOrder = {
+    id: `ord-table-${Date.now()}`,
+    order_number,
+    table_number: String(table_number),
+    order_type: 'dine-in',
+    waiter_id: waiter_id || 'staff-waiter-01',
+    waiter_name: waiter_name || 'Captain',
+    customer_name: customer_name || `Table ${table_number} Guest`,
+    phone: phone || '',
+    status: 'sent_to_kitchen', // sent_to_kitchen | ready_to_pick | served | completed
+    subtotal,
+    delivery_charge: 0,
+    gst,
+    total,
+    notes: notes || '',
+    payment_method: 'UPI',
+    created_at: new Date().toISOString(),
+    items: items.map((it, idx) => ({
+      id: it.id || `item-${idx}`,
+      name: it.name,
+      price: Number(it.price),
+      qty: Number(it.qty),
+      notes: it.notes || '',
+      is_prepared: false
+    }))
+  };
+
+  currentOrders.unshift(newOrder);
+  saveLocalOrders(currentOrders);
+  window.dispatchEvent(new Event('nandanvan_order_update'));
+
+  return { data: newOrder, error: null };
+}
+
+export async function toggleOrderItemPrepared(orderId, itemIndex) {
+  const orders = getLocalOrders();
+  const order = orders.find(o => o.id === orderId);
+  if (!order || !order.items || !order.items[itemIndex]) {
+    return { data: null, error: new Error('Order or item not found') };
+  }
+  order.items[itemIndex].is_prepared = !order.items[itemIndex].is_prepared;
+  saveLocalOrders(orders);
+  window.dispatchEvent(new Event('nandanvan_order_update'));
+  return { data: order, error: null };
+}
+
+export async function markOrderReadyToPick(orderId) {
+  const orders = getLocalOrders();
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return { data: null, error: new Error('Order not found') };
+  order.status = 'ready_to_pick';
+  if (order.items) {
+    order.items.forEach(it => { it.is_prepared = true; });
+  }
+  order.ready_at = new Date().toISOString();
+  saveLocalOrders(orders);
+  window.dispatchEvent(new Event('nandanvan_order_update'));
+  return { data: order, error: null };
+}
+
+export async function markOrderServed(orderId) {
+  const orders = getLocalOrders();
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return { data: null, error: new Error('Order not found') };
+  order.status = 'served';
+  order.served_at = new Date().toISOString();
+  saveLocalOrders(orders);
+  window.dispatchEvent(new Event('nandanvan_order_update'));
+  return { data: order, error: null };
+}
+
+export async function completeTableBill(orderId, { phone, customer_name, payment_method }) {
+  const orders = getLocalOrders();
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return { data: null, error: new Error('Order not found') };
+  order.status = 'completed';
+  if (phone) order.phone = phone;
+  if (customer_name) order.customer_name = customer_name;
+  if (payment_method) order.payment_method = payment_method;
+  order.billed_at = new Date().toISOString();
+  saveLocalOrders(orders);
+  window.dispatchEvent(new Event('nandanvan_order_update'));
+  return { data: order, error: null };
 }

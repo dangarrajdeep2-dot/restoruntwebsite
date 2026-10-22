@@ -16,7 +16,10 @@ import {
   X, 
   Bell, 
   ExternalLink,
-  Sparkles
+  Sparkles,
+  Users,
+  ChefHat,
+  Utensils
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
@@ -108,6 +111,7 @@ export default function AdminLayout({ activeTab, onSelectTab, children }) {
     { id: 'gallery', label: 'Gallery', icon: Image },
     { id: 'reviews', label: 'Reviews', icon: Star },
     { id: 'enquiries', label: 'Enquiries', icon: MessageSquare },
+    { id: 'staff', label: 'Staff & Roles', icon: Users },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
@@ -191,6 +195,33 @@ export default function AdminLayout({ activeTab, onSelectTab, children }) {
               );
             })}
           </nav>
+        </div>
+
+        {/* Quick Portal Switchers */}
+        <div className="py-2.5 px-3 border-t border-gold/15 bg-forest-950/60 space-y-1.5 rounded-xl mx-2 mb-2">
+          <span className="text-[9px] uppercase tracking-widest text-cream/50 block font-semibold">
+            Floor & Kitchen Portals
+          </span>
+          <div className="grid grid-cols-2 gap-1.5">
+            <a
+              href="#/portal/waiter"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2 py-1.5 rounded-lg bg-gold/10 hover:bg-gold/20 border border-gold/30 text-gold text-[10px] font-semibold flex items-center justify-center space-x-1"
+            >
+              <Utensils className="w-3 h-3" />
+              <span>Waiter App</span>
+            </a>
+            <a
+              href="#/portal/cook"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2 py-1.5 rounded-lg bg-saffron/10 hover:bg-saffron/20 border border-saffron/30 text-saffron text-[10px] font-semibold flex items-center justify-center space-x-1"
+            >
+              <ChefHat className="w-3 h-3" />
+              <span>Cook KDS</span>
+            </a>
+          </div>
         </div>
 
         {/* User Info & Logout */}

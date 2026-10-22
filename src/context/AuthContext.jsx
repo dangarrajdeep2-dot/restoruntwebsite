@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { authenticateStaff } from '../api/staff';
 
 const AuthContext = createContext();
 
@@ -25,23 +26,31 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
-    if (!isSupabaseConfigured) {
-      // Check local demo auth session
-      const storedDemo = localStorage.getItem('nandanvan_demo_admin');
-      if (storedDemo) {
-        const demoUser = JSON.parse(storedDemo);
-        setUser(demoUser);
+    // 1. Check local staff auth session
+    const storedStaff = localStorage.getItem('nandanvan_active_staff');
+    if (storedStaff) {
+      try {
+        const staffUser = JSON.parse(storedStaff);
+        setUser(staffUser);
         setProfile({
-          id: demoUser.id,
-          full_name: demoUser.full_name,
-          role: demoUser.role,
+          id: staffUser.id,
+          full_name: staffUser.full_name,
+          role: staffUser.role,
+          email: staffUser.email,
         });
+        setLoading(false);
+        return;
+      } catch {
+        localStorage.removeItem('nandanvan_active_staff');
       }
+    }
+
+    if (!isSupabaseConfigured) {
       setLoading(false);
       return;
     }
 
-    // Supabase auth subscription
+    // 2. Supabase auth subscription
     const initAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -76,31 +85,29 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  const signIn = async (email, password) => {
-    if (!isSupabaseConfigured) {
-      // Demo authentication for local testing
-      if (email.toLowerCase().includes('admin') || email.toLowerCase().includes('owner') || password === 'admin123') {
-        const demoAdmin = {
-          id: 'demo-owner-id',
-          email,
-          full_name: 'Maharaj Digvijay (Owner)',
-          role: 'owner',
-        };
-        localStorage.setItem('nandanvan_demo_admin', JSON.stringify(demoAdmin));
-        setUser(demoAdmin);
-        setProfile({
-          id: demoAdmin.id,
-          full_name: demoAdmin.full_name,
-          role: demoAdmin.role,
-        });
-        return { data: { user: demoAdmin }, error: null };
-      }
-      return { data: null, error: new Error('Invalid demo credentials. Use owner@nandanvan.com / admin123') };
+  const signIn = async (emailOrUsername, password) => {
+    // First try local staff registry (handles admin, waiter, cook)
+    const { data: staffData, error: staffError } = await authenticateStaff(emailOrUsername, password);
+    if (staffData) {
+      localStorage.setItem('nandanvan_active_staff', JSON.stringify(staffData));
+      setUser(staffData);
+      setProfile({
+        id: staffData.id,
+        full_name: staffData.full_name,
+        role: staffData.role,
+        email: staffData.email,
+      });
+      return { data: { user: staffData }, error: null };
     }
 
+    if (!isSupabaseConfigured) {
+      return { data: null, error: staffError || new Error('Invalid credentials') };
+    }
+
+    // If Supabase is configured, try Supabase auth
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: emailOrUsername,
         password,
       });
       if (error) throw error;
@@ -114,26 +121,37 @@ export function AuthProvider({ children }) {
   };
 
   const signOut = async () => {
-    if (!isSupabaseConfigured) {
-      localStorage.removeItem('nandanvan_demo_admin');
-      setUser(null);
-      setProfile(null);
-      return { error: null };
-    }
-    const { error } = await supabase.auth.signOut();
+    localStorage.removeItem('nandanvan_active_staff');
+    localStorage.removeItem('nandanvan_demo_admin');
     setUser(null);
     setProfile(null);
-    return { error };
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.auth.signOut();
+      } catch (err) {
+        console.warn('Sign out error:', err);
+      }
+    }
+    return { error: null };
   };
 
-  const isAdmin = profile?.role === 'owner' || profile?.role === 'staff';
+  const role = profile?.role || user?.role || 'customer';
+  const isAdmin = role === 'admin' || role === 'owner';
+  const isWaiter = role === 'waiter';
+  const isCook = role === 'cook';
+  const isStaff = isAdmin || isWaiter || isCook;
 
   return (
     <AuthContext.Provider
       value={{
         user,
         profile,
+        role,
         isAdmin,
+        isWaiter,
+        isCook,
+        isStaff,
         loading,
         signIn,
         signOut,

@@ -265,14 +265,6 @@ export default function Navbar({ onOpenReserve, onOpenTrackOrder, settings }) {
               </button>
 
               <a
-                href="#/admin"
-                className="w-full py-2.5 rounded-xl border border-gold/30 text-gold/90 font-medium text-xs tracking-wider uppercase text-center hover:bg-gold/10 transition-colors flex items-center justify-center space-x-2"
-              >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Admin Portal</span>
-              </a>
-
-              <a
                 href="tel:+919825084721"
                 className="text-xs text-center text-cream/60 flex items-center justify-center space-x-1 hover:text-gold pt-2"
               >

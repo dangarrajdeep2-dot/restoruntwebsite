@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, CheckCircle2, Store, Clock, Phone, IndianRupee, Bell } from 'lucide-react';
+import { Save, CheckCircle2, Store, Clock, Phone, IndianRupee, Bell, QrCode } from 'lucide-react';
 import { getSettings, updateSettings } from '../../api/settings';
 
 export default function AdminSettings() {
@@ -181,6 +181,60 @@ export default function AdminSettings() {
             <p className="text-[10px] text-cream/50 mt-1">
               Clicking "Order Online" on the website will redirect customers to this Zomato page.
             </p>
+          </div>
+        </div>
+
+        {/* Dynamic UPI & Billing Configuration */}
+        <div className="p-5 rounded-2xl bg-forest-900/60 border border-gold/25 shadow-xl space-y-4">
+          <h4 className="text-xs font-bold text-gold uppercase tracking-wider flex items-center space-x-2">
+            <QrCode className="w-4 h-4" />
+            <span>Dynamic UPI Payments & WhatsApp Bill Settings</span>
+          </h4>
+          <p className="text-xs text-cream/70">
+            Set your restaurant UPI ID. When waiters click "Ready to Bill" on their phone, the exact bill amount is embedded in this dynamic UPI QR code and sent directly to the customer on WhatsApp.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="sm:col-span-1">
+              <label className="block text-cream/80 font-medium mb-1">Restaurant UPI ID (VPA) *</label>
+              <input
+                type="text"
+                name="upi_id"
+                value={form.upi_id || ''}
+                onChange={handleChange}
+                placeholder="e.g. nandanvan@oksbi or 9825084721@upi"
+                className="w-full px-3 py-2 rounded-xl bg-forest-950 border border-gold/25 text-cream font-mono focus:outline-none focus:border-gold"
+                required
+              />
+              <span className="text-[10px] text-cream/40">GPay, PhonePe, Paytm target VPA</span>
+            </div>
+
+            <div className="sm:col-span-1">
+              <label className="block text-cream/80 font-medium mb-1">UPI Payee Business Name</label>
+              <input
+                type="text"
+                name="upi_name"
+                value={form.upi_name || ''}
+                onChange={handleChange}
+                placeholder="Nandanvan Multicuisine Restaurant"
+                className="w-full px-3 py-2 rounded-xl bg-forest-950 border border-gold/25 text-cream focus:outline-none focus:border-gold"
+              />
+              <span className="text-[10px] text-cream/40">Shown on customer UPI app during scan</span>
+            </div>
+
+            <div className="sm:col-span-1">
+              <label className="block text-cream/80 font-medium mb-1">Dine-In GST Rate (%)</label>
+              <input
+                type="number"
+                min={0}
+                max={28}
+                name="gst_rate"
+                value={form.gst_rate ?? 5}
+                onChange={handleChange}
+                className="w-full px-3 py-2 rounded-xl bg-forest-950 border border-gold/25 text-cream focus:outline-none focus:border-gold"
+              />
+              <span className="text-[10px] text-cream/40">Standard restaurant GST is 5%</span>
+            </div>
           </div>
         </div>
 
