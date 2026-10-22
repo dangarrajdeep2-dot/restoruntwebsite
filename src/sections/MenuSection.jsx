@@ -3,19 +3,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
   Sparkles, 
-  ShoppingBag, 
   Flame, 
-  Check, 
   Clock, 
   Layers, 
   X, 
   Info,
   Utensils,
-  ExternalLink
+  ExternalLink,
+  Calendar
 } from 'lucide-react';
 import { getCategories } from '../api/categories';
 import { getMenuItems } from '../api/menu';
 import { useLanguage } from '../context/LanguageContext';
+
+const DEFAULT_DISH_FALLBACK = 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=800&q=80';
 
 export default function MenuSection({ settings }) {
   const { t } = useLanguage();
@@ -46,31 +47,56 @@ export default function MenuSection({ settings }) {
     loadData();
   }, []);
 
-  // Filter dishes
+  // Compute item count per category for intuitive badges
+  const categoryCounts = useMemo(() => {
+    const counts = { all: dishes.length };
+    categories.forEach((cat) => {
+      counts[cat.slug] = dishes.filter(
+        (d) =>
+          d.category_id === cat.id ||
+          d.category_id === cat.slug ||
+          d.category === cat.slug ||
+          d.category === cat.name ||
+          d.categories?.slug === cat.slug
+      ).length;
+    });
+    return counts;
+  }, [dishes, categories]);
+
+  // Robust dish filter with fallback resilience
   const filteredDishes = useMemo(() => {
     return dishes.filter((dish) => {
       // Category filter
       if (activeCategory !== 'all') {
-        const cat = categories.find((c) => c.slug === activeCategory);
-        if (cat && dish.category_id !== cat.id) return false;
+        const cat = categories.find((c) => c.slug === activeCategory || c.id === activeCategory);
+        const match =
+          (cat && dish.category_id === cat.id) ||
+          dish.category_id === activeCategory ||
+          dish.category === activeCategory ||
+          dish.categories?.slug === activeCategory ||
+          (cat && dish.category === cat.name);
+        if (!match) return false;
       }
+
       // Type filter (veg, jain)
       if (selectedType !== 'all' && dish.type !== selectedType) {
         return false;
       }
+
       // Search query filter
       if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchesName = dish.name.toLowerCase().includes(q);
+        const q = searchQuery.toLowerCase().trim();
+        const matchesName = (dish.name || '').toLowerCase().includes(q);
         const matchesDesc = (dish.description || '').toLowerCase().includes(q);
         if (!matchesName && !matchesDesc) return false;
       }
+
       return true;
     });
   }, [dishes, categories, activeCategory, selectedType, searchQuery]);
 
   return (
-    <section id="menu" className="relative py-16 sm:py-24 bg-forest-950">
+    <section id="menu" className="relative py-16 sm:py-24 bg-forest-950 scroll-mt-20 sm:scroll-mt-24">
       {/* Decorative background glow */}
       <div className="absolute top-1/2 left-0 w-72 h-72 bg-gold/5 rounded-full blur-3xl pointer-events-none" />
 
@@ -89,15 +115,15 @@ export default function MenuSection({ settings }) {
             {t.menu.subtitle}
           </p>
 
-          {/* Zomato Delivery Partner Notice */}
-          <div className="mt-3.5 inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-forest-900/80 border border-gold/30 text-cream text-[11px] sm:text-xs backdrop-blur-sm">
+          {/* Official Zomato Delivery Partner Notice */}
+          <div className="mt-3.5 inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-forest-900/90 border border-gold/30 text-cream text-[11px] sm:text-xs backdrop-blur-sm shadow-md">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Online delivery is fulfilled exclusively via our official partner</span>
+            <span>Online home delivery is served via official partner</span>
             <a
               href={zomatoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gold font-bold hover:underline inline-flex items-center space-x-1"
+              className="text-gold font-bold hover:underline inline-flex items-center space-x-1 ml-1"
             >
               <span>Zomato</span>
               <ExternalLink className="w-3 h-3 text-gold" />
@@ -122,6 +148,7 @@ export default function MenuSection({ settings }) {
               <button
                 onClick={() => setSearchQuery('')}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-cream/50 hover:text-gold"
+                aria-label="Clear search"
               >
                 ✕
               </button>
@@ -151,8 +178,8 @@ export default function MenuSection({ settings }) {
           </div>
         </div>
 
-        {/* Sticky Category Tabs (Ultra-Clean Horizontal Scroll) */}
-        <div className="sticky top-14 sm:top-16 z-30 py-2.5 mb-8 bg-forest-950/98 border-y border-gold/20 backdrop-blur-md">
+        {/* Sticky Category Tabs (Clean & Under Navbar) */}
+        <div className="sticky top-[58px] sm:top-[68px] z-20 py-2.5 mb-8 bg-forest-950/98 border-y border-gold/20 backdrop-blur-md">
           <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar scroll-smooth">
             <button
               onClick={() => setActiveCategory('all')}
@@ -163,26 +190,36 @@ export default function MenuSection({ settings }) {
               }`}
             >
               <Layers className="w-3 h-3" />
-              <span>All Categories</span>
+              <span>All ({categoryCounts.all || dishes.length})</span>
             </button>
 
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.slug)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
-                  activeCategory === cat.slug
-                    ? 'bg-gold-gradient text-forest-950 font-bold shadow-md'
-                    : 'bg-forest-900/80 border border-gold/20 text-cream/80 hover:text-gold'
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const count = categoryCounts[cat.slug] ?? 0;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.slug)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap flex items-center space-x-1 ${
+                    activeCategory === cat.slug
+                      ? 'bg-gold-gradient text-forest-950 font-bold shadow-md'
+                      : 'bg-forest-900/80 border border-gold/20 text-cream/80 hover:text-gold'
+                  }`}
+                >
+                  <span>{cat.name}</span>
+                  {count > 0 && (
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ml-1 ${
+                      activeCategory === cat.slug ? 'bg-forest-950/20 text-forest-950' : 'bg-gold/15 text-gold'
+                    }`}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Dishes Grid */}
+        {/* Dishes Grid (Fast, Non-Jittery, Clean) */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
@@ -205,116 +242,123 @@ export default function MenuSection({ settings }) {
                 setSelectedType('all');
                 setSearchQuery('');
               }}
-              className="mt-3 px-4 py-1.5 rounded-full bg-gold/20 border border-gold/40 text-gold text-xs font-semibold"
+              className="mt-3 px-4 py-1.5 rounded-full bg-gold/20 border border-gold/40 text-gold text-xs font-semibold hover:bg-gold hover:text-forest-950 transition-all"
             >
               Reset Filters
             </button>
           </div>
         ) : (
-          <motion.div
-            layout
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
-          >
-            <AnimatePresence>
-              {filteredDishes.map((dish) => {
-                return (
-                  <motion.div
-                    layout
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.25 }}
-                    key={dish.id}
-                    className="group rounded-2xl bg-forest-900/50 backdrop-blur-sm border border-gold/20 hover:border-gold/50 shadow-lg transition-all duration-300 flex flex-col overflow-hidden"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            {filteredDishes.map((dish) => {
+              return (
+                <div
+                  key={dish.id}
+                  className="group rounded-2xl bg-forest-900/50 backdrop-blur-sm border border-gold/20 hover:border-gold/50 shadow-lg transition-all duration-300 flex flex-col overflow-hidden"
+                >
+                  {/* Dish Image */}
+                  <div 
+                    onClick={() => setSelectedDishDetail(dish)}
+                    className="relative h-44 sm:h-48 w-full overflow-hidden bg-forest-950 cursor-pointer"
                   >
-                    {/* Dish Image */}
-                    <div 
-                      onClick={() => setSelectedDishDetail(dish)}
-                      className="relative h-44 sm:h-48 w-full overflow-hidden bg-forest-950 cursor-pointer"
-                    >
-                      <img
-                        src={dish.image_url || 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=600&q=80'}
-                        alt={dish.name}
-                        loading="lazy"
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-forest-950 via-transparent to-transparent opacity-70" />
+                    <img
+                      src={dish.image_url || DEFAULT_DISH_FALLBACK}
+                      alt={dish.name}
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = DEFAULT_DISH_FALLBACK;
+                      }}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-forest-950 via-transparent to-transparent opacity-75" />
 
-                      {/* Top Badges */}
-                      <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase backdrop-blur-md ${
-                            dish.type === 'jain'
-                              ? 'bg-amber-900/90 text-amber-300 border border-amber-500/40'
-                              : 'bg-emerald-900/90 text-emerald-300 border border-emerald-500/40'
-                          }`}
-                        >
-                          ● {dish.type}
+                    {/* Top Badges */}
+                    <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase backdrop-blur-md ${
+                          dish.type === 'jain'
+                            ? 'bg-amber-900/90 text-amber-300 border border-amber-500/40'
+                            : 'bg-emerald-900/90 text-emerald-300 border border-emerald-500/40'
+                        }`}
+                      >
+                        ● {dish.type}
+                      </span>
+
+                      {dish.chef_special && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gold text-forest-950 flex items-center space-x-1 shadow-sm">
+                          <Sparkles className="w-2.5 h-2.5" />
+                          <span>Special</span>
                         </span>
-
-                        {dish.chef_special && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gold text-forest-950 flex items-center space-x-1 shadow-sm">
-                            <Sparkles className="w-2.5 h-2.5" />
-                            <span>Special</span>
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Info hint */}
-                      <div className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-full bg-forest-950/80 text-cream/70 text-[10px] flex items-center space-x-1">
-                        <Info className="w-3 h-3 text-gold" />
-                        <span>Details</span>
-                      </div>
+                      )}
                     </div>
 
-                    {/* Card Content Body */}
-                    <div className="p-4 flex-1 flex flex-col justify-between">
-                      <div>
-                        <h3
-                          onClick={() => setSelectedDishDetail(dish)}
-                          className="font-serif text-base sm:text-lg font-bold text-cream hover:text-gold transition-colors cursor-pointer line-clamp-1 mb-1"
-                        >
-                          {dish.name}
-                        </h3>
+                    {/* Quick tap hint */}
+                    <div className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-full bg-forest-950/80 text-cream/70 text-[10px] flex items-center space-x-1">
+                      <Info className="w-3 h-3 text-gold" />
+                      <span>Details</span>
+                    </div>
+                  </div>
 
-                        <p className="text-xs text-cream/70 line-clamp-2 leading-relaxed mb-3">
-                          {dish.description}
-                        </p>
+                  {/* Card Content Body */}
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h3
+                        onClick={() => setSelectedDishDetail(dish)}
+                        className="font-serif text-base sm:text-lg font-bold text-cream hover:text-gold transition-colors cursor-pointer line-clamp-1 mb-1"
+                      >
+                        {dish.name}
+                      </h3>
+
+                      <p className="text-xs text-cream/70 line-clamp-2 leading-relaxed mb-3 font-light">
+                        {dish.description}
+                      </p>
+                    </div>
+
+                    {/* Footer: Price + Details & Zomato Actions */}
+                    <div className="pt-3 border-t border-gold/15 flex items-center justify-between gap-2">
+                      <div className="flex items-baseline space-x-0.5">
+                        <span className="text-xs text-gold/80 font-medium">₹</span>
+                        <span className="font-serif text-xl font-bold text-gold">
+                          {dish.price}
+                        </span>
                       </div>
 
-                      {/* Footer: Price & Zomato Order Button */}
-                      <div className="pt-3 border-t border-gold/15 flex items-center justify-between">
-                        <div className="flex items-baseline space-x-0.5">
-                          <span className="text-xs text-gold/80 font-medium">₹</span>
-                          <span className="font-serif text-xl font-bold text-gold">
-                            {dish.price}
-                          </span>
-                        </div>
+                      <div className="flex items-center space-x-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDishDetail(dish)}
+                          className="px-2.5 py-1.5 rounded-xl text-[11px] font-semibold text-cream/90 hover:text-gold bg-forest-950/80 hover:bg-forest-950 border border-gold/25 transition-all flex items-center space-x-1"
+                          title="View Details & Ingredients"
+                        >
+                          <Info className="w-3 h-3 text-gold" />
+                          <span>Details</span>
+                        </button>
 
                         <a
                           href={zomatoUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-3 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center space-x-1 bg-gold-gradient text-forest-950 hover:shadow-md transition-all active:scale-95 group/btn"
+                          className="px-2.5 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center space-x-1 bg-gold-gradient text-forest-950 hover:shadow-md transition-all active:scale-95"
+                          title="Order on Zomato"
                         >
                           <Utensils className="w-3 h-3" />
-                          <span>Order (Zomato)</span>
-                          <ExternalLink className="w-2.5 h-2.5 group-hover/btn:translate-x-0.5 transition-transform" />
+                          <span>Zomato</span>
+                          <ExternalLink className="w-2.5 h-2.5" />
                         </a>
                       </div>
                     </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </motion.div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 
-      {/* Clean, Fast Dish Detail Modal (No Heavy 3D) */}
+      {/* Clean, Rich Dish Detail Modal */}
       <AnimatePresence>
         {selectedDishDetail && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-forest-950/80 backdrop-blur-md overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-forest-950/85 backdrop-blur-md overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -323,15 +367,20 @@ export default function MenuSection({ settings }) {
             >
               <button
                 onClick={() => setSelectedDishDetail(null)}
-                className="absolute top-3 right-3 z-20 p-2 rounded-full bg-forest-950/70 text-cream/70 hover:text-gold"
+                className="absolute top-3 right-3 z-20 p-2 rounded-full bg-forest-950/80 text-cream/70 hover:text-gold transition-colors"
+                aria-label="Close dish modal"
               >
                 <X className="w-5 h-5" />
               </button>
 
               <div className="relative h-56 w-full overflow-hidden bg-forest-950">
                 <img
-                  src={selectedDishDetail.image_url}
+                  src={selectedDishDetail.image_url || DEFAULT_DISH_FALLBACK}
                   alt={selectedDishDetail.name}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = DEFAULT_DISH_FALLBACK;
+                  }}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-forest-900 via-transparent to-transparent" />
@@ -347,17 +396,17 @@ export default function MenuSection({ settings }) {
                 </div>
               </div>
 
-              <div className="p-6">
+              <div className="p-5 sm:p-6">
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <h3 className="font-serif text-2xl font-bold text-cream">
                     {selectedDishDetail.name}
                   </h3>
-                  <span className="font-serif text-2xl font-bold text-gold">
+                  <span className="font-serif text-2xl font-bold text-gold whitespace-nowrap">
                     ₹{selectedDishDetail.price}
                   </span>
                 </div>
 
-                <p className="text-xs sm:text-sm text-cream/70 leading-relaxed mb-6 font-light">
+                <p className="text-xs sm:text-sm text-cream/75 leading-relaxed mb-5 font-light">
                   {selectedDishDetail.description}
                 </p>
 
@@ -383,7 +432,7 @@ export default function MenuSection({ settings }) {
                   </div>
                 </div>
 
-                <div className="flex gap-3">
+                <div className="space-y-2.5">
                   <a
                     href={zomatoUrl}
                     target="_blank"
@@ -391,9 +440,22 @@ export default function MenuSection({ settings }) {
                     className="w-full py-3.5 rounded-xl bg-gold-gradient text-forest-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg hover:shadow-gold/30 transition-all active:scale-95 group"
                   >
                     <Utensils className="w-4 h-4 text-forest-950" />
-                    <span>Order this on Zomato • ₹{selectedDishDetail.price}</span>
+                    <span>Order on Zomato • ₹{selectedDishDetail.price}</span>
                     <ExternalLink className="w-3.5 h-3.5 text-forest-950 group-hover:translate-x-0.5 transition-transform" />
                   </a>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedDishDetail(null);
+                      const elem = document.getElementById('reservation');
+                      if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-forest-950 hover:bg-forest-800 border border-gold/30 text-gold font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition-all active:scale-95"
+                  >
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>Book Table to Taste Dine-in</span>
+                  </button>
                 </div>
               </div>
             </motion.div>

@@ -61,7 +61,7 @@ INSERT INTO public.menu_items (category_id, name, description, price, type, spic
   -- Royal Punjabi
   ('c2222222-2222-2222-2222-222222222222', 'Nandanvan Special Paneer Tikka Lababdar', 'Charcoal-grilled cottage cheese cubes simmered in a luscious cashew-tomato gravy garnished with cream.', 320.00, 'veg', 2, 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=800&q=80', TRUE, TRUE, 420, 25),
   ('c2222222-2222-2222-2222-222222222222', 'Dal Bukhara (24-Hour Slow Cooked)', 'Velvety black lentils simmered overnight with tomatoes, butter, and cream on a low wood fire.', 280.00, 'veg', 1, 'https://images.unsplash.com/photo-1546833998-877b37c2e5c6?auto=format&fit=crop&w=800&q=80', TRUE, TRUE, 380, 20),
-  ('c2222222-2222-2222-2222-222222222222', 'Kadhai Paneer Shahi', 'Fresh cottage cheese, crisp bell peppers, and whole coriander seeds cooked in freshly ground kadhai masala.', 300.00, 'veg', 2, 'https://images.unsplash.com/photo-1567184109411-b28f2b740523?auto=format&fit=crop&w=800&q=80', FALSE, TRUE, 370, 20),
+  ('c2222222-2222-2222-2222-222222222222', 'Kadhai Paneer Shahi', 'Fresh cottage cheese, crisp bell peppers, and whole coriander seeds cooked in freshly ground kadhai masala.', 300.00, 'veg', 2, 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=800&q=80', FALSE, TRUE, 370, 20),
   ('c2222222-2222-2222-2222-222222222222', 'Mushroom Do Pyaza', 'Button mushrooms and carmelized pearl onions folded into a rich golden onion-tomato gravy.', 290.00, 'veg', 2, 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=800&q=80', FALSE, TRUE, 280, 20),
   ('c2222222-2222-2222-2222-222222222222', 'Malai Kofta Imperial (Jain Available)', 'Delicate dumplings of paneer and dried fruits bathed in a sweet, velvety white cashew cream sauce.', 310.00, 'jain', 1, 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&w=800&q=80', TRUE, TRUE, 440, 25),
 
@@ -79,7 +79,7 @@ INSERT INTO public.menu_items (category_id, name, description, price, type, spic
 
   -- Sizzlers & Continental
   ('c5555555-5555-5555-5555-555555555555', 'Nandanvan Signature Paneer Steak Sizzler', 'Marinated grilled paneer steak on buttered herb rice, grilled exotic vegetables, french fries, and pepper sauce.', 390.00, 'veg', 2, 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80', TRUE, TRUE, 560, 25),
-  ('c5555555-5555-5555-5555-555555555555', 'Wild Mushroom Penne Alfredo', 'Al dente penne pasta tossed in a velvety parmesan and garlic cream sauce with sauteed cremini mushrooms.', 320.00, 'veg', 1, 'https://images.unsplash.com/photo-1621996346565-e3d5d6281682?auto=format&fit=crop&w=800&q=80', FALSE, TRUE, 480, 20),
+  ('c5555555-5555-5555-5555-555555555555', 'Wild Mushroom Penne Alfredo', 'Al dente penne pasta tossed in a velvety parmesan and garlic cream sauce with sauteed cremini mushrooms.', 320.00, 'veg', 1, 'https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&w=800&q=80', FALSE, TRUE, 480, 20),
   ('c5555555-5555-5555-5555-555555555555', 'Classic Margherita Pizza (Wood-Fired Style)', 'Hand-stretched thin crust topped with San Marzano tomato sauce, fresh mozzarella, and sweet basil leaves.', 310.00, 'veg', 1, 'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?auto=format&fit=crop&w=800&q=80', FALSE, TRUE, 520, 20),
 
   -- Tandoori Breads & Rice

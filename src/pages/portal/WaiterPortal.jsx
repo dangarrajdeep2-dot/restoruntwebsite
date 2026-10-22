@@ -97,12 +97,18 @@ export default function WaiterPortal() {
   // Filter menu items
   const filteredDishes = dishes.filter((dish) => {
     if (selectedCategory !== 'all') {
-      const cat = categories.find((c) => c.slug === selectedCategory);
-      if (cat && dish.category_id !== cat.id) return false;
+      const cat = categories.find((c) => c.slug === selectedCategory || c.id === selectedCategory);
+      const match =
+        (cat && dish.category_id === cat.id) ||
+        dish.category_id === selectedCategory ||
+        dish.category === selectedCategory ||
+        dish.categories?.slug === selectedCategory ||
+        (cat && dish.category === cat.name);
+      if (!match) return false;
     }
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      return dish.name.toLowerCase().includes(q) || (dish.description || '').toLowerCase().includes(q);
+      const q = searchQuery.toLowerCase().trim();
+      return (dish.name || '').toLowerCase().includes(q) || (dish.description || '').toLowerCase().includes(q);
     }
     return true;
   });
@@ -453,19 +459,32 @@ ${upiUri}
                 >
                   All Items
                 </button>
-                {categories.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => setSelectedCategory(c.slug)}
-                    className={`px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all ${
-                      selectedCategory === c.slug
-                        ? 'bg-gold-gradient text-forest-950 shadow-md'
-                        : 'bg-forest-900/80 text-cream/70 hover:text-gold border border-gold/20'
-                    }`}
-                  >
-                    {c.name.split(' ')[0]}
-                  </button>
-                ))}
+                {categories.map((c) => {
+                  const shortName = c.name
+                    .replace(' & North Indian', '')
+                    .replace(' & Gujarati', '')
+                    .replace(' Flavors', '')
+                    .replace(' Fusion', '')
+                    .replace(' & Continental', '')
+                    .replace(' & Rice', '')
+                    .replace('Royal ', '')
+                    .replace(' & Mithai', '')
+                    .replace(' & Mocktails', '');
+
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => setSelectedCategory(c.slug)}
+                      className={`px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all ${
+                        selectedCategory === c.slug
+                          ? 'bg-gold-gradient text-forest-950 shadow-md'
+                          : 'bg-forest-900/80 text-cream/70 hover:text-gold border border-gold/20'
+                      }`}
+                    >
+                      {shortName}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

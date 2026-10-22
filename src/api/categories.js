@@ -10,7 +10,8 @@ const getLocalCategories = () => {
     return initialCategories;
   }
   try {
-    return JSON.parse(stored);
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : initialCategories;
   } catch {
     return initialCategories;
   }

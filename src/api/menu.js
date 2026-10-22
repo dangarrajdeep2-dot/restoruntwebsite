@@ -1,16 +1,26 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { initialMenuItems } from '../data/mockData';
 
-const STORAGE_KEY = 'nandanvan_menu_items';
+const STORAGE_KEY = 'nandanvan_menu_items_v2';
 
 const getLocalMenu = () => {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (!stored) {
+    localStorage.removeItem('nandanvan_menu_items'); // remove deprecated key
     localStorage.setItem(STORAGE_KEY, JSON.stringify(initialMenuItems));
     return initialMenuItems;
   }
   try {
-    return JSON.parse(stored);
+    const parsed = JSON.parse(stored);
+    // Auto-heal any stale 404 images from previous sessions
+    const healed = parsed.map(item => {
+      const fresh = initialMenuItems.find(i => i.id === item.id);
+      if (fresh && (item.image_url?.includes('567184109411') || item.image_url?.includes('621996346565') || !item.image_url)) {
+        return { ...item, image_url: fresh.image_url };
+      }
+      return item;
+    });
+    return healed;
   } catch {
     return initialMenuItems;
   }
