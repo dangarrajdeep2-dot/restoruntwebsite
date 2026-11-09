@@ -55,11 +55,11 @@ export default function ContactSection() {
   const address = settings?.address || 'Near Munjka, Kalawad Road, Rajkot, Gujarat 360005, India';
 
   return (
-    <section id="contact" className="py-24 bg-forest-900/40 relative overflow-hidden">
+    <section id="contact" className="py-14 sm:py-24 bg-forest-900/40 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-14">
+        <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-14">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-forest-950 border border-gold/30 text-gold text-xs font-semibold tracking-wider uppercase mb-3">
             <MapPin className="w-3.5 h-3.5" />
             <span>Visit Nandanvan</span>

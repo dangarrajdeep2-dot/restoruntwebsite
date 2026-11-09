@@ -68,11 +68,11 @@ export default function TestimonialsSection() {
   };
 
   return (
-    <section id="reviews" className="py-24 bg-forest-900/40 relative overflow-hidden">
+    <section id="reviews" className="py-14 sm:py-24 bg-forest-900/40 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 mb-8 sm:mb-12">
           <div>
             <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-gold/10 border border-gold/30 text-gold text-xs font-semibold tracking-wider uppercase mb-3">
               <Star className="w-3.5 h-3.5 fill-gold" />
@@ -205,7 +205,7 @@ export default function TestimonialsSection() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.4 }}
-                className="relative rounded-3xl bg-forest-950 border border-gold/30 p-8 sm:p-12 shadow-2xl flex flex-col items-center text-center"
+                className="relative rounded-3xl bg-forest-950 border border-gold/30 p-5 sm:p-12 shadow-2xl flex flex-col items-center text-center"
               >
                 {/* Decorative Quote Icon */}
                 <div className="w-14 h-14 rounded-full bg-gold/15 text-gold border border-gold/30 flex items-center justify-center mb-6">

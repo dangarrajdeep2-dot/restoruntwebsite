@@ -63,23 +63,23 @@ export default function HeroSection({ onOpenReserve, onExploreMenu, settings }) 
             </div>
 
             {/* Key Trust Metrics */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-4 sm:pt-6 border-t border-gold/20 max-w-md mx-auto lg:mx-0">
-              <div className="flex flex-col items-center">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-3 pt-4 sm:pt-6 border-t border-gold/20 max-w-md mx-auto lg:mx-0">
+              <div className="flex flex-col items-center text-center">
                 <div className="flex items-center space-x-1 text-gold text-base sm:text-lg font-serif font-bold">
                   <span>4.9</span>
                   <Star className="w-3.5 h-3.5 fill-gold text-gold" />
                 </div>
-                <span className="text-[10px] sm:text-[11px] text-cream/60">500+ Reviews</span>
+                <span className="text-[10px] sm:text-[11px] text-cream/60 whitespace-nowrap">500+ Reviews</span>
               </div>
 
-              <div className="flex flex-col items-center border-x border-gold/15 px-2">
-                <span className="text-gold text-base sm:text-lg font-serif font-bold">100% Pure</span>
-                <span className="text-[10px] sm:text-[11px] text-cream/60">Gir Desi Ghee</span>
+              <div className="flex flex-col items-center text-center border-x border-gold/15 px-1 sm:px-2">
+                <span className="text-gold text-base sm:text-lg font-serif font-bold whitespace-nowrap">100% Pure</span>
+                <span className="text-[10px] sm:text-[11px] text-cream/60 whitespace-nowrap">Gir Desi Ghee</span>
               </div>
 
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center text-center">
                 <span className="text-gold text-base sm:text-lg font-serif font-bold">30+</span>
-                <span className="text-[10px] sm:text-[11px] text-cream/60">Delicacies</span>
+                <span className="text-[10px] sm:text-[11px] text-cream/60 whitespace-nowrap">Delicacies</span>
               </div>
             </div>
           </motion.div>

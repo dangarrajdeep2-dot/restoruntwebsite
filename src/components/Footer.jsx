@@ -20,7 +20,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-forest-950 border-t border-gold/25 pt-16 pb-12 relative overflow-hidden">
+    <footer className="bg-forest-950 border-t border-gold/25 pt-12 sm:pt-16 pb-28 sm:pb-12 relative overflow-hidden">
       {/* Background radial accent */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-24 bg-gradient-to-b from-gold/10 to-transparent pointer-events-none" />
 

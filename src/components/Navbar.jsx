@@ -4,8 +4,6 @@ import {
   Menu as MenuIcon, 
   X, 
   ShoppingBag, 
-  Sun, 
-  Moon, 
   PhoneCall, 
   Calendar,
   Globe,
@@ -15,7 +13,6 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function Navbar({ onOpenReserve, onOpenTrackOrder, settings }) {
@@ -24,7 +21,6 @@ export default function Navbar({ onOpenReserve, onOpenTrackOrder, settings }) {
   const [isLangOpen, setIsLangOpen] = useState(false);
 
   const { itemCount, setIsDrawerOpen } = useCart();
-  const { theme, toggleTheme, isDark } = useTheme();
   const { lang, changeLanguage, t } = useLanguage();
 
   useEffect(() => {
@@ -147,14 +143,6 @@ export default function Navbar({ onOpenReserve, onOpenTrackOrder, settings }) {
                 </AnimatePresence>
               </div>
 
-              {/* Theme Toggle Button */}
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-lg bg-forest-900/60 border border-gold/20 text-cream/80 hover:text-gold hover:border-gold/40 transition-all"
-                aria-label="Toggle Theme"
-              >
-                {isDark ? <Sun className="w-4 h-4 text-gold" /> : <Moon className="w-4 h-4 text-gold" />}
-              </button>
 
               {/* Order on Zomato CTA */}
               <a
